@@ -1,0 +1,13 @@
+obj/
+bin/
+*.suo
+Thumbs.db
+*.bak
+.~lock.*
+*~
+
+*.pidb
+*.userprefs
+
+*#
+/.project
