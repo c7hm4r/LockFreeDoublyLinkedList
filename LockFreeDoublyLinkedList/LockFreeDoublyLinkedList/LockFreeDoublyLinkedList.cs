@@ -583,7 +583,7 @@ namespace LockFreeDoublyLinkedList
                     NextStepWaitHandle.Value.WaitOne();
 
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("({0}) Schritt {1}", 
+                    Console.WriteLine("({0}) Step {1}", 
                         Thread.CurrentThread.Name, StepCounter.Count());
 #endif
                 }
