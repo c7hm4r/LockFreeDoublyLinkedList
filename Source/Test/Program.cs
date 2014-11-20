@@ -1,4 +1,19 @@
-﻿using System;
+﻿//Copyright 2014 Christoph Müller
+
+//Licensed under the Apache License, Version 2.0 (the "License");
+//you may not use this file except in compliance with the License.
+//You may obtain a copy of the License at
+
+//   http://www.apache.org/licenses/LICENSE-2.0
+
+//Unless required by applicable law or agreed to in writing, software
+//distributed under the License is distributed on an "AS IS" BASIS,
+//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//See the License for the specific language governing permissions and
+//limitations under the License.
+
+
+using System;
 using System.Threading;
 using Test.Tests;
 
@@ -20,14 +35,14 @@ namespace Test
             {
                 if (scheduledRepetitions == 0)
                 {
-                    Console.Write("\'r' oder 'n' eingeben, um den Test neu zu starten. ?");
+                    Console.Write("Enter 'r' or 'n', to restart the test. ?");
                     char key = Console.ReadKey().KeyChar;
                     Console.WriteLine();
                     if (key == 'r')
                         scheduledRepetitions = 1;
                     else if (key == 'n')
                     {
-                        Console.Write("Anzahl der Neustarts eingeben. ?");
+                        Console.Write("Enter number of restarts. ?");
                         int i;
                         string text = Console.ReadLine();
                         if (int.TryParse(text, out i))
@@ -64,7 +79,7 @@ namespace Test
 
                 Thread.MemoryBarrier();
                 t.Stop();
-                //Console.WriteLine("Dauer: " + t.Duration + " s.");
+                //Console.WriteLine("Duration: " + t.Duration + " s.");
             }
         }
     }
