@@ -6,7 +6,8 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>https://github.com/2i/lfdll</projectUrl>
+    <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>Copyright 2014</copyright>
