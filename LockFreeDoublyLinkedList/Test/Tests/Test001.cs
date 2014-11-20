@@ -17,7 +17,7 @@
  * and don’t become entangled in a deadlock.
  * Additionally, output the seed number.
  * May exacerbate the exception handling in the IDE, though. */
-#define HandleTaskExceptionImmediately
+//#define HandleTaskExceptionImmediately
 /* PopLeft is not atomic supported by the current LFDLL implementation. */
 //#define PopLeft
 
@@ -96,10 +96,10 @@ namespace Test.Tests
 #endif
 
 #if SynchronizedLFDLL
-            Tuple<List<List<operationTiming>>, ILockFreeDoublyLinkedList<object>> lfdllResult
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> lfdllResult
                 = runOnLfdll(initial, eParamsList, rand2);
 #else
-            Tuple<List<List<operationTiming>>, ILockFreeDoublyLinkedList<object>> lfdllResult
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> lfdllResult
                 = runOnLfdll(initial, eParamsList);
 #endif
 
@@ -252,14 +252,15 @@ namespace Test.Tests
             }
         }
 
-        private Tuple<List<List<operationTiming>>, ILockFreeDoublyLinkedList<object>> runOnLfdll(
+        private Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> runOnLfdll(
             IEnumerable<int> initial, List<executorParams> operationParamses
 #if SynchronizedLFDLL
 , Random random
 #endif
 )
         {
-            ILockFreeDoublyLinkedList<object> lfdll = LockFreeDoublyLinkedList<object>.Create();
+            LockFreeDoublyLinkedList<object> lfdll
+                = new LockFreeDoublyLinkedList<object>();
             foreach (int o in initial)
                 lfdll.PushRight(o);
 
@@ -345,7 +346,7 @@ namespace Test.Tests
             // ReSharper disable once CoVariantArrayConversion
             Task.WaitAll(executorTasks.ToArray());
 
-            return new Tuple<List<List<operationTiming>>, ILockFreeDoublyLinkedList<object>>(
+            return new Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>>(
                 executorTasks.Select(t => t.Result).ToList(), lfdll);
         }
 
@@ -478,7 +479,7 @@ namespace Test.Tests
 
             public lfdllOperationExecutor(
                 executorParams eParams,
-                ILockFreeDoublyLinkedList<object> list, Counter counter,
+                LockFreeDoublyLinkedList<object> list, Counter counter,
                 int name)
             {
                 this.eParams = eParams;
@@ -488,7 +489,7 @@ namespace Test.Tests
             }
 
             private executorParams eParams;
-            private ILockFreeDoublyLinkedList<object> list;
+            private LockFreeDoublyLinkedList<object> list;
             private LockFreeDoublyLinkedList<object>.INode current;
             private Counter counter;
         }
@@ -550,7 +551,7 @@ namespace Test.Tests
                 ref LinkedListNode<object> current);
 
             public abstract void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list,
+                LockFreeDoublyLinkedList<object> list,
                 ref LockFreeDoublyLinkedList<object>.INode current);
 
             public override string ToString()
@@ -582,7 +583,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 if (current != null)
                     current.InsertAfter(value);
@@ -624,7 +625,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 if (current != null)
                     current.InsertBefore(value);
@@ -658,7 +659,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 if (current != null)
                     current.Remove();
@@ -690,7 +691,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 if (current == null)
                 {
@@ -732,7 +733,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 if (current == null)
                 {
@@ -763,7 +764,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 list.PushLeft(value);
             }
@@ -806,7 +807,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 list.PushRight(value);
             }
@@ -844,7 +845,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list,
+                LockFreeDoublyLinkedList<object> list,
                 ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 list.PopLeft();
@@ -871,7 +872,7 @@ namespace Test.Tests
             }
 
             public override void RunOnLfdll(
-                ILockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
+                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
             {
                 list.PopRight();
             }
