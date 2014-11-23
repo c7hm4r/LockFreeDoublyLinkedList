@@ -34,9 +34,17 @@ using System.Threading;
 
 namespace LockFreeDoublyLinkedList
 {
+    /// <summary>
+    /// A lock free doubly linked list for high concurrency.
+    /// </summary>
+    /// <typeparam name="T">The type of the values.</typeparam>
     public class LockFreeDoublyLinkedList<T> : IEnumerable<T>
         where T : class
     {
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>A IEnumerator&lt;T&gt; that can be used to iterate through the collection.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             INode current = Head;
@@ -49,14 +57,29 @@ namespace LockFreeDoublyLinkedList
             }
         }
 
+        /// <summary>
+        /// Returns an enumerator that iterates through the collection.
+        /// </summary>
+        /// <returns>A IEnumerator&lt;T&gt; that can be used to iterate through the collection.</returns>
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
         }
 
+        /// <summary>
+        /// The dummy head node (leftmost).
+        /// </summary>
         public INode Head { get { return headNode; } }
+        /// <summary>
+        /// The dummy tail node (rightmost).
+        /// </summary>
         public INode Tail { get { return tailNode; } }
 
+        /// <summary>
+        /// Inserts a new node at the head position.
+        /// </summary>
+        /// <param name="value">The initial value of the new node.</param>
+        /// <returns>The new inserted node.</returns>
         public INode PushLeft(T value)
         {
             SpinWait spin = new SpinWait();
@@ -116,6 +139,11 @@ namespace LockFreeDoublyLinkedList
             pushEnd(node, next, spin);
             return node;
         }
+        /// <summary>
+        /// Inserts a new node at the tail position.
+        /// </summary>
+        /// <param name="value">The initial value of the new node.</param>
+        /// <returns>The new inserted node.</returns>
         public INode PushRight(T value)
         {
             SpinWait spin = new SpinWait();
@@ -242,6 +270,13 @@ namespace LockFreeDoublyLinkedList
             }
         }
 #endif
+        /// <summary>
+        /// Removes the rightmost non-dummy node, if it exists.
+        /// </summary>
+        /// <returns>
+        /// null, if the list is empty; else a Tuple&lt;T&gt;,
+        /// which contains the value of the removed node.
+        /// </returns>
         public Tuple<T> PopRight()
         {
             SpinWait spin = new SpinWait();
@@ -316,6 +351,9 @@ namespace LockFreeDoublyLinkedList
             }
         }
 
+        /// <summary>
+        /// Creates a new empty LockFreeDoublyLinkedList.
+        /// </summary>
         public LockFreeDoublyLinkedList()
         {
             headNode = new node(this);
@@ -327,6 +365,11 @@ namespace LockFreeDoublyLinkedList
             tailNode.Next_ = new nodeLink(null, false);
         }
 
+        /// <summary>
+        /// Creates a new LockFreeDoublyLinkedList
+        /// which contains the contents of the enumeration initial.
+        /// </summary>
+        /// <param name="initial">The enumeration to copy.</param>
         public LockFreeDoublyLinkedList(IEnumerable<T> initial)
             : this()
         {
@@ -336,22 +379,57 @@ namespace LockFreeDoublyLinkedList
                 PushRight(value);
         }
 
+        /// <summary>
+        /// A node of a LockFreeDoublyLinkedList instance.
+        /// </summary>
         public interface INode
         {
 #if DEBUG
             long Id { get; }
 
 #endif
+            /// <summary>
+            /// The value stored by the current node instance.
+            /// </summary>
             T Value { get; set; }
 
+            /// <summary>
+            /// The right neighbor node or null,
+            /// if the current node is the dummy tail node.
+            /// </summary>
             INode Next { get; }
+            /// <summary>
+            /// The left neighbor node or null,
+            /// if the current node is the dummy head node.
+            /// </summary>
             INode Prev { get; }
 
+            /// <summary>
+            /// Returns, if the current node has been removed.
+            /// </summary>
             bool Removed { get; }
 
+            /// <summary>
+            /// Inserts a new node left beside the current node instance.
+            /// </summary>
+            /// <param name="newValue">The initial value of the new node.</param>
+            /// <returns>The new inserted node.</returns>
             INode InsertBefore(T newValue);
+            /// <summary>
+            /// Inserts a new node right beside the current node instance.
+            /// </summary>
+            /// <param name="newValue">The initial value of the new node.</param>
+            /// <returns>The new inserted node.</returns>
             INode InsertAfter(T newValue);
 
+            /// <summary>
+            /// Removes the current node
+            /// from the corresponding LockFreeDoublyLinkedList instance.
+            /// </summary>
+            /// <returns>
+            /// Whether the current node has been deleted by this thread.
+            /// Also returns false if the current node is a dummy node.
+            /// </returns>
             bool Remove();
         }
 
