@@ -327,6 +327,15 @@ namespace LockFreeDoublyLinkedList
             tailNode.Next_ = new nodeLink(null, false);
         }
 
+        public LockFreeDoublyLinkedList(IEnumerable<T> initial)
+            : this()
+        {
+            if (initial == null)
+                throw new ArgumentNullException("initial");
+            foreach (T value in initial)
+                PushRight(value);
+        }
+
         public interface INode
         {
 #if DEBUG
