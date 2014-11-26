@@ -137,6 +137,7 @@ namespace LockFreeDoublyLinkedList
                 spin.SpinOnce();
             }
             pushEnd(node, next, spin);
+            Thread.MemoryBarrier();
             return node;
         }
         /// <summary>
@@ -190,6 +191,7 @@ namespace LockFreeDoublyLinkedList
                 spin.SpinOnce();
             }
             pushEnd(node, next, spin);
+            Thread.MemoryBarrier();
             return node;
         }
 
@@ -211,7 +213,10 @@ namespace LockFreeDoublyLinkedList
                 leaveTestSynchronizedBlock();
 
                 if (node == tailNode)
+                {
+                    Thread.MemoryBarrier();
                     return null;
+                }
 
                 Thread.MemoryBarrier();
                 enterTestSynchronizedBlock();
@@ -263,6 +268,7 @@ namespace LockFreeDoublyLinkedList
                 if (b)
                 {
                     correctPrev(prev, next.P);
+                    Thread.MemoryBarrier();
                     return new Tuple<T>(node.Value_);
                 }
 
@@ -311,7 +317,10 @@ namespace LockFreeDoublyLinkedList
                 }
 
                 if (node == headNode)
+                {
+                    Thread.MemoryBarrier();
                     return null;
+                }
 
                 enterTestSynchronizedBlock();
                 bool b1 = compareExchangeNodeLink(ref node.Next_,
@@ -344,6 +353,7 @@ namespace LockFreeDoublyLinkedList
                     leaveTestSynchronizedBlock();
 
                     correctPrev(prev, next);
+                    Thread.MemoryBarrier();
                     return new Tuple<T>(node.Value_);
                 }
 
@@ -363,6 +373,7 @@ namespace LockFreeDoublyLinkedList
             headNode.Next_ = new nodeLink(tailNode, false);
             tailNode.Prev_ = new nodeLink(headNode, false);
             tailNode.Next_ = new nodeLink(null, false);
+            Thread.MemoryBarrier();
         }
 
         /// <summary>
@@ -543,6 +554,7 @@ namespace LockFreeDoublyLinkedList
 
         private node correctPrev(node prev, node node)
         {
+            // ReSharper disable once IntroduceOptionalParameters.Local
             return correctPrev(prev, node, new SpinWait());
         }
 
@@ -795,7 +807,9 @@ namespace LockFreeDoublyLinkedList
                     //    return default(T);
 
                     Thread.MemoryBarrier();
-                    return this.Value_;
+                    T value = this.Value_;
+                    Thread.MemoryBarrier();
+                    return value;
                 }
                 set
                 {
@@ -803,6 +817,7 @@ namespace LockFreeDoublyLinkedList
                         throw new InvalidOperationException();
                     Thread.MemoryBarrier();
                     this.Value_ = value;
+                    Thread.MemoryBarrier();
                 }
             }
 
@@ -811,7 +826,9 @@ namespace LockFreeDoublyLinkedList
                 get
                 {
                     node cursor = this;
-                    if (toNext(ref cursor))
+                    bool b = toNext(ref cursor);
+                    Thread.MemoryBarrier();
+                    if (b)
                         return cursor;
                     return null;
                 }
@@ -821,7 +838,9 @@ namespace LockFreeDoublyLinkedList
                 get
                 {
                     node cursor = this;
-                    if (toPrev(ref cursor))
+                    bool b = toPrev(ref cursor);
+                    Thread.MemoryBarrier();
+                    if (b)
                         return cursor;
                     return null;
                 }
@@ -833,17 +852,22 @@ namespace LockFreeDoublyLinkedList
                 {
                     Thread.MemoryBarrier();
                     bool result = this.Next_.D;
+                    Thread.MemoryBarrier();
                     return result;
                 }
             }
 
             public INode InsertBefore(T newValue)
             {
-                return insertBefore(newValue, this);
+                INode result = insertBefore(newValue, this);
+                Thread.MemoryBarrier();
+                return result;
             }
             public INode InsertAfter(T newValue)
             {
-                return insertAfter(newValue, this);
+                INode result = insertAfter(newValue, this);
+                Thread.MemoryBarrier();
+                return result;
             }
 
             public bool Remove() // out T lastValue
@@ -868,6 +892,7 @@ namespace LockFreeDoublyLinkedList
                     if (next.D)
                     {
                         // lastValue = default(T);
+                        Thread.MemoryBarrier();
                         return false;
                     }
 
@@ -926,6 +951,7 @@ namespace LockFreeDoublyLinkedList
                         }
                         List.correctPrev(prev.P, next.P);
                         //lastValue = this.newValue;
+                        Thread.MemoryBarrier();
                         return true;
                     }
                 }
