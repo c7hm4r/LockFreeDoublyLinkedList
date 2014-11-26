@@ -287,13 +287,29 @@ namespace LockFreeDoublyLinkedList
         }
 #endif
         /// <summary>
-        /// Removes the rightmost non-dummy node, if it exists.
+        /// Removes the rightmost non-dummy node if it exists
+        /// and returns its value after the removal.
         /// </summary>
         /// <returns>
         /// null, if the list is empty; else a Tuple&lt;T&gt;,
         /// which contains the value of the removed node.
         /// </returns>
+        [ObsoleteAttribute("This method is not atomar. For clarity use PopRightNode instead.", false)]
         public Tuple<T> PopRight()
+        {
+            INode node = PopRightNode();
+            if (node == null)
+                return null;
+            return Tuple.Create(node.Value);
+        }
+
+        /// <summary>
+        /// Removes the rightmost non-dummy node, if it exists.
+        /// </summary>
+        /// <returns>
+        /// null, if the list is empty; else the removed node.
+        /// </returns>
+        public INode PopRightNode()
         {
             SpinWait spin = new SpinWait();
             node next = tailNode;
@@ -365,16 +381,7 @@ namespace LockFreeDoublyLinkedList
                     correctPrev(prev, next);
 
                     Thread.MemoryBarrier();
-                    enterTestSynchronizedBlock();
-                    T value = node.Value_;
-#if SynchronizedLfdll_Verbose
-                    Console.WriteLine("PopRight Step 4");
-                    Console.WriteLine("value = {0}", value);
-#endif
-                    leaveTestSynchronizedBlock();
-
-                    Thread.MemoryBarrier();
-                    return new Tuple<T>(value);
+                    return node;
                 }
 
                 spin.SpinOnce();
