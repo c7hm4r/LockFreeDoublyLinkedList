@@ -268,8 +268,18 @@ namespace LockFreeDoublyLinkedList
                 if (b)
                 {
                     correctPrev(prev, next.P);
+
                     Thread.MemoryBarrier();
-                    return new Tuple<T>(node.Value_);
+                    enterTestSynchronizedBlock();
+                    T value = node.Value_;
+#if SynchronizedLfdll_Verbose
+                    Console.WriteLine("PopLeft Step 4");
+                    Console.WriteLine("value = {0}", value);
+#endif
+                    leaveTestSynchronizedBlock();
+
+                    Thread.MemoryBarrier();
+                    return new Tuple<T>(value);
                 }
 
                 spin.SpinOnce();
@@ -353,8 +363,18 @@ namespace LockFreeDoublyLinkedList
                     leaveTestSynchronizedBlock();
 
                     correctPrev(prev, next);
+
                     Thread.MemoryBarrier();
-                    return new Tuple<T>(node.Value_);
+                    enterTestSynchronizedBlock();
+                    T value = node.Value_;
+#if SynchronizedLfdll_Verbose
+                    Console.WriteLine("PopRight Step 4");
+                    Console.WriteLine("value = {0}", value);
+#endif
+                    leaveTestSynchronizedBlock();
+
+                    Thread.MemoryBarrier();
+                    return new Tuple<T>(value);
                 }
 
                 spin.SpinOnce();
@@ -965,6 +985,9 @@ namespace LockFreeDoublyLinkedList
 
                 Id = Interlocked.Increment(ref nextId) - 1;
 #endif
+                /* Value_ is flushed
+                 * at the moment the current node instance is published
+                 * (by CompareExchange). */
             }
 
             public node(LockFreeDoublyLinkedList<T> list)
