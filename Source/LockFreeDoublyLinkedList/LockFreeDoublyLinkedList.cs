@@ -469,6 +469,20 @@ namespace LockFreeDoublyLinkedList
             /// Also returns false if the current node is a dummy node.
             /// </returns>
             bool Remove();
+
+            /// <summary>
+            /// Compares the Value property to comparand
+            /// and replaces the prevalent value with newValue
+            /// if and only if comparand reference equals the prevalent value.
+            /// This happens in a single atomic operation.
+            /// </summary>
+            /// <param name="newValue">The value to write.</param>
+            /// <param name="comparand">The original value </param>
+            /// <returns>
+            /// The prevalent value,
+            /// regardless of whether the replacement took place.
+            /// </returns>
+            T CompareExchangeValue(T newValue, T comparand);
         }
 
         private node headNode;
@@ -1307,6 +1321,12 @@ namespace LockFreeDoublyLinkedList
                 }
                 List.correctPrev(prev, next);
                 return cursor;
+            }
+
+            public T CompareExchangeValue(T newValue, T comparand)
+            {
+                return Interlocked.CompareExchange<T>
+                    (ref Value_, newValue, comparand);
             }
         }
 
