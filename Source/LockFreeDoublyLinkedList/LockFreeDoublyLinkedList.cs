@@ -1372,7 +1372,7 @@ namespace LockFreeDoublyLinkedList
                     spin.SpinOnce();
                 }
                 List_.correctPrev(prev, next);
-                return cursor;
+                return node;
             }
 
             public T CompareExchangeValue(T newValue, T comparand)
