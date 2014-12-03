@@ -198,6 +198,10 @@ namespace LockFreeDoublyLinkedList
         }
 
 #if PopLeft
+        /// <summary>
+        /// Removes the leftmost non-dummy node and returns its value.
+        /// </summary>
+        /// <returns>The value of the removed node.</returns>
         public Tuple<T> PopLeft()
         {
             SpinWait spin = new SpinWait();
@@ -234,6 +238,7 @@ namespace LockFreeDoublyLinkedList
                     setMark(ref node.Prev_);
 
                     enterTestSynchronizedBlock();
+                    // ReSharper disable once UnusedVariable
                     bool b1 = compareExchangeNodeLinkInPair(ref prev.Next_,
                         new nodeLink(next.P, false),
                         (nodeLink)node);
@@ -645,6 +650,7 @@ namespace LockFreeDoublyLinkedList
                         setMark(ref prev.Prev_);
 
                         enterTestSynchronizedBlock();
+                        // ReSharper disable once UnusedVariable
                         bool b1 = compareExchangeNodeLinkInPair(ref lastLink.Next_,
                             (nodeLink)prev2.P, (nodeLink)prev);
 #if SynchronizedLfdll_Verbose
@@ -1109,6 +1115,7 @@ namespace LockFreeDoublyLinkedList
                         List_.leaveTestSynchronizedBlock();
 
                         List_.enterTestSynchronizedBlock();
+                        // ReSharper disable once UnusedVariable
                         bool b1 = compareExchangeNodeLinkInPair(ref cursor.Next_,
                             (nodeLink)p, (nodeLink)next);
 #if SynchronizedLfdll_Verbose
