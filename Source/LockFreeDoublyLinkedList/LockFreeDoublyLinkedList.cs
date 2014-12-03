@@ -813,8 +813,8 @@ namespace LockFreeDoublyLinkedList
             {
                 Console.WriteLine("    .Prev_ = "
                     + nodeLinkDescription(node.Prev_));
-                Console.WriteLine("    .Next_.Link = "
-                    + nodeLinkDescription(node.Next_.Link));
+                Console.WriteLine("    .Next_ = "
+                    + valueNodeLinkPairDescription(node.Next_));
             }
         }
 #endif
@@ -842,9 +842,21 @@ namespace LockFreeDoublyLinkedList
                 + ", " + link.D + ")";
         }
 
+        private string valueNodeLinkPairDescription
+            (valueNodeLinkPair pair)
+        {
+            return "(" + pair.Value + ", "
+                   + nodeLinkDescription(pair.Link) + ")";
+        }
+
         private void logNodeLink(nodeLink link)
         {
             Console.WriteLine(nodeLinkDescription(link));
+        }
+
+        private void logValueNodeLinkPair(valueNodeLinkPair pair)
+        {
+            Console.WriteLine(valueNodeLinkPairDescription(pair));
         }
 #endif
 #endif // SynchronizedLfdll
