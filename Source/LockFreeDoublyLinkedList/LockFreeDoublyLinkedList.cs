@@ -476,6 +476,36 @@ namespace LockFreeDoublyLinkedList
             INode InsertAfter(T newValue);
 
             /// <summary>
+            /// Inserts a new node after the current node instance
+            /// if and only if:
+            /// <list type="bullet">
+            ///     <item><description>
+            ///         the current value is no dummy node,
+            ///     </description></item>
+            ///     <item><description>
+            ///         the current node has not yet been deleted
+            ///     </description></item>
+            ///     <item><description>
+            ///         and the <paramref name="condition"/>
+            ///         for the current node’s value is satisfied.
+            ///     </description></item>
+            /// </list>
+            /// </summary>
+            /// <param name="newValue">
+            /// The new value for the node to insert.
+            /// </param>
+            /// <param name="condition">
+            /// The condition which the current node’s value
+            /// needs to satisfy for the insertion to take place.
+            /// </param>
+            /// <returns>
+            /// The inserted node,
+            /// if the insertion could be performed.
+            /// <c>null</c> else.
+            /// </returns>
+            INode InsertAfterIf(T newValue, Func<T, bool> condition);
+
+            /// <summary>
             /// Removes the current node
             /// from the corresponding LockFreeDoublyLinkedList instance.
             /// </summary>
@@ -966,6 +996,97 @@ namespace LockFreeDoublyLinkedList
                 Thread.MemoryBarrier();
                 return result;
             }
+
+            public INode InsertAfterIf(T newValue, Func<T, bool> condition)
+            {
+                if (this == List_.tailNode || this == List_.headNode)
+                    return null;
+
+                SpinWait spin = new SpinWait();
+                node cursor = this;
+                node node = new node(List_);
+                node prev = cursor;
+                valueNodeLinkPair nextLink;
+                node next;
+                while (true)
+                {
+
+                    Thread.MemoryBarrier();
+                    List_.enterTestSynchronizedBlock();
+                    nextLink = prev.Next_;
+#if SynchronizedLfdll_Verbose
+                    Console.WriteLine("insertAfterIf Step 0");
+                    Console.WriteLine("nextLink =");
+                    List_.logValueNodeLinkPair(nextLink);
+#endif
+                    List_.leaveTestSynchronizedBlock();
+
+                    next = nextLink.Link.P;
+                    node.Prev_ = new nodeLink(prev, false);
+                    node.Next_ = new valueNodeLinkPair(newValue,
+                        new nodeLink(next, false));
+
+                    bool cexSuccess;
+                    valueNodeLinkPair currentPair = nextLink;
+                    while (true)
+                    {
+                        if (!condition(currentPair.Value))
+                        {
+                            Thread.MemoryBarrier();
+                            return null;
+                        }
+                        if (!currentPair.Link.Equals(
+                            new nodeLink(next, false)))
+                        {
+                            cexSuccess = false;
+                            break;
+                        }
+                        
+                        List_.enterTestSynchronizedBlock();
+                        valueNodeLinkPair prevalent
+                            = Interlocked.CompareExchange
+                            (ref cursor.Next_,
+                            new valueNodeLinkPair
+                                (currentPair.Value,
+                                    new nodeLink(node, false)),
+                            currentPair);
+#if SynchronizedLfdll_Verbose
+                        Console.WriteLine("InsertAfterIf Step 1");
+                        Console.WriteLine(
+                            "CompareExchange(ref cursor.Next_, {0}, {1}) = {2}",
+                            new valueNodeLinkPair
+                                (currentPair.Value,
+                                    new nodeLink(node, false)),
+                            currentPair,
+                            prevalent);
+                        Console.WriteLine("cursor =");
+                        List_.LogNode(cursor);
+#endif
+                        List_.leaveTestSynchronizedBlock();
+
+                        if (ReferenceEquals(prevalent, currentPair))
+                        {
+                            cexSuccess = true;
+                            break;
+                        }
+                        currentPair = prevalent;
+                    }
+
+                    if (cexSuccess)
+                        break;
+
+                    if (currentPair.Link.D)
+                    {
+                        Thread.MemoryBarrier();
+                        return null;
+                    }
+                    spin.SpinOnce();
+                }
+                List_.correctPrev(prev, next);
+                Thread.MemoryBarrier();
+                return node;
+            }
+
 
             public bool Remove() // out T lastValue
             {
