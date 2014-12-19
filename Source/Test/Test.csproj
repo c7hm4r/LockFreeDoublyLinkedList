@@ -28,7 +28,8 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -47,7 +48,31 @@
     <Compile Include="LinqHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tests\Test001\ExecutionState.cs" />
+    <Compile Include="Tests\Test001\ObjectIdGenerator.cs" />
+    <Compile Include="Tests\Test001\Operation.cs" />
+    <Compile Include="Tests\Test001\IOperationResultComparer.cs" />
+    <Compile Include="Tests\Test001\OperationResultComparerCreators\IOperationResultComparerCreator.cs" />
+    <Compile Include="Tests\Test001\OperationResultComparerCreators\SeedAcceptingOperationComparerCreator.cs" />
+    <Compile Include="Tests\Test001\OperationResultComparers\BoolReturningOperationComparer.cs" />
+    <Compile Include="Tests\Test001\OperationResultComparers\NodeReturningOperationComparer.cs" />
+    <Compile Include="Tests\Test001\OperationResultComparers\VoidOperationComparer.cs" />
+    <Compile Include="Tests\Test001\Operations\BoolReturningOperation.cs" />
+    <Compile Include="Tests\Test001\Operations\InsertAfter.cs" />
+    <Compile Include="Tests\Test001\Operations\InsertBefore.cs" />
+    <Compile Include="Tests\Test001\Operations\Next.cs" />
+    <Compile Include="Tests\Test001\Operations\NodeCreationOperation.cs" />
+    <Compile Include="Tests\Test001\Operations\NodeReturningOperation.cs" />
+    <Compile Include="Tests\Test001\Operations\PopRightNode.cs" />
+    <Compile Include="Tests\Test001\Operations\Previous.cs" />
+    <Compile Include="Tests\Test001\Operations\PushRight.cs" />
+    <Compile Include="Tests\Test001\Operations\Remove.cs" />
+    <Compile Include="Tests\Test001\Operations\PushLeft.cs" />
+    <Compile Include="Tests\Test001\Operations\SelectRandomKnownNode.cs" />
+    <Compile Include="Tests\Test001\Operations\VoidOperation.cs" />
     <Compile Include="Tests\Test001.cs" />
+    <Compile Include="Tests\Test001\TestIterationParameters.cs" />
+    <Compile Include="Tests\Test001\TestListItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

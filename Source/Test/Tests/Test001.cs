@@ -46,11 +46,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using LockFreeDoublyLinkedList;
+using Test.Tests.Test001_;
+using Test.Tests.Test001_.OperationResultComparers;
+using Test.Tests.Test001_.Operations;
 
 namespace Test.Tests
 {
@@ -58,30 +60,31 @@ namespace Test.Tests
     {
         public override void Main(string[] args)
         {
+#if Verbose
+            const bool verbose = true;
+#else
+            const bool verbose = false;
+#endif
+
             int operationSequencesNumber = 3;
             const int operationNumberPerSequence = 4; 
             const int listSize = 4;
 
-            List<int> initial = Enumerable
-                .Range(0, listSize)
-                .ToList();
-
             //Seed = -1182330010;
             //Seed = 1136758711;
+
+            //Seed = 2037835186;
+            //Seed = -1713978986;
+            //Seed = -61631207;
+            //Seed = 2078889772;
+            //Seed = 234923264;
             Random rand2 = new Random(Seed);
 
-            List<executorParams> eParamsList = Enumerable
-                .Range(0, operationSequencesNumber)
-                .Select(i => i * operationNumberPerSequence + listSize)
-                .Select(i => Enumerable
-                    .Range(0, operationNumberPerSequence)
-                    .Select(j => newRandomOperation(i + j, rand2))
-                    .ToList())
-                .Select(
-                    os =>
-                        new executorParams(os,
-                            rand2.Next(listSize)))
-                .ToList();
+            TestIterationParameters iterationParameters =
+                newIterationParameters(
+                    listSize, operationSequencesNumber,
+                    operationNumberPerSequence,
+                    rand2);
 
 #if Verbose
             Console.WriteLine("Test of LockFreeDoublyLinkedList");
@@ -93,17 +96,16 @@ namespace Test.Tests
 
             Console.WriteLine("seed: " + Seed);
 
-            Console.WriteLine("initial:        "
-                + string.Join("\t", initial.Select(i => i.ToString(CultureInfo.InvariantCulture))));
             Console.WriteLine("startIndex-es: "
-                + string.Join(" \t", eParamsList.Select(eParam => eParam.StartIndex)));
+                + string.Join(" \t", iterationParameters.OperationSequences.Select(eParam => eParam.StartIndex)));
 
             Console.WriteLine("operations: ");
-            for (int i = 0; i < eParamsList.Count; i++)
+            for (int i = 0; i < iterationParameters.OperationSequences.Count; i++)
             {
-                executorParams eParamse = eParamsList[i];
+                ExecutionSequenceParameters executionSequenceParameters
+                    = iterationParameters.OperationSequences[i];
                 Console.WriteLine("\t{0}", i);
-                foreach (operation op in eParamse.Operations)
+                foreach (IOperationResultComparer op in executionSequenceParameters.Operations)
                 {
                     Console.WriteLine("\t\t{0}", op);
                 }
@@ -111,14 +113,14 @@ namespace Test.Tests
 #endif
 
 #if SynchronizedLFDLL
-            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> lfdllResult
-                = runOnLfdll(initial, eParamsList, rand2);
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<TestListItem>> lfdllResult
+                = runOnLfdll(iterationParameters);
 #else
-            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> lfdllResult
-                = runOnLfdll(initial, eParamsList);
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<TestListItem>> lfdllResult
+                = runOnLfdll(iterationParameters);
 #endif
 
-            List<object> lfdllResultList = lfdllResult.Item2.ToList();
+            List<TestListItem> lfdllResultList = lfdllResult.Item2.ToList();
 
             List<operationExecutionInfo> timings
                 = lfdllResult.Item1
@@ -126,19 +128,31 @@ namespace Test.Tests
                         opTiming => new operationExecutionInfo(opTiming, i)))
                     .ToList();
 
+            IEqualityComparer<TestListItem> equalityComparer
+                = LinqHelper.ToEqualityComparer(
+                    (TestListItem item1, TestListItem item2) =>
+                        item1.Value == item2.Value,
+                    item =>
+                        0x51ed270b + item.Value.GetHashCode() * -1521134295);
+
 #if CheckCorrectness
-            if (permutations(timings)
-                .Select(permTimings =>
-                    runOnLinkedList(initial, eParamsList,
-                    permTimings.Select(oei => oei.ExecutorIndex).ToList()))
-                .Any(sequentialResult =>
-                    sequentialResult.SequenceEqual(lfdllResultList)))
-            {
-#if Verbose
+            bool found =
+                permutations(timings)
+                    .Select(
+                        permTimings =>
+                            runOnLinkedList(
+                                iterationParameters,
+                                permTimings.Select(oei => oei.ExecutorIndex)
+                                    .ToList()))
+                    .Any(
+                        llResult =>
+                            llResult.SequenceEqual(
+                                lfdllResultList, equalityComparer)
+                            && iterationParameters.OperationSequences.All(
+                                os => os.Operations.All(o => o.LastResultsEqual)));
+            if (verbose && found)
                 Console.WriteLine("Gefunden.");
-#endif
-            }
-            else
+            if (verbose || !found)
             {
                 Console.WriteLine("Test of LockFreeDoublyLinkedList");
 
@@ -149,58 +163,119 @@ namespace Test.Tests
 
                 Console.WriteLine("seed: " + Seed);
 
-                Console.WriteLine("initial:        "
-                    + string.Join("\t", initial.Select(i => i.ToString(CultureInfo.InvariantCulture))));
                 Console.WriteLine("lfdllResult: "
                     + string.Join("\t",
                         lfdllResultList.Select(o => o.ToString())));
                 Console.WriteLine("linked list results:");
-                foreach (IEnumerable<object> sequentialResult in
-                    permutations(timings)
-                        .Select(permTimings =>
-                            runOnLinkedList(initial, eParamsList,
-                            permTimings.Select(oei => oei.ExecutorIndex).ToList()))
-                        .Distinct(LinqHelper.ToEqualityComparer<IEnumerable<object>>(
-                            (e1, e2) => e1.SequenceEqual(e2),
-                            e1 => e1.Aggregate(0x51ed270b,
-                                (hash, next) => hash * -1521134295))))
+                var enumerationEqualityComparer = LinqHelper
+                    .ToEqualityComparer<IEnumerable<TestListItem>>(
+                        (e1, e2) => (
+                            e1.Count() == e2.Count()
+                            && e1.Zip(e2, (i1, i2) => i1.Value == i2.Value)
+                                .All(i => i)),
+                        e1 => e1.Aggregate(
+                            0x51ed270b,
+                            (hash, next) => hash * -1521134295 + next.Value.GetHashCode()));
+                IEnumerable<IEnumerable<TestListItem>> perms
+                    = permutations(timings)
+                        .Select(
+                            permTimings =>
+                                runOnLinkedList(
+                                    iterationParameters,
+                                    permTimings.Select(oei => oei.ExecutorIndex)
+                                        .ToList()))
+                        .Distinct(enumerationEqualityComparer);
+                foreach (IEnumerable<TestListItem> sequentialResult in
+                    perms)
                 {
                     Console.WriteLine(string.Join("", sequentialResult.Select(value => " \t" + value)));
                 }
-                Console.WriteLine("startIndex-es: " + string.Join(" \t", eParamsList.Select(eParam => eParam.StartIndex)));
+                Console.WriteLine("startIndex-es: " + string.Join(" \t", iterationParameters.OperationSequences.Select(eParam => eParam.StartIndex)));
                 Console.WriteLine("operations:");
                 foreach (operationExecutionInfo timing in timings)
                 {
                     Console.WriteLine("   " + timing.ExecutorIndex
                         + " \t" + timing.Start
-                        + " \t" + timing.End +
-                        " \t" + timing.Operation);
+                        + " \t" + timing.End
+                        + " \t" + timing.Operation);
                 }
-                Console.Write("?");
-                Console.ReadLine();
-                throw new Exception();
+                if (!found)
+                {
+                    Console.Write("?");
+                    Console.ReadLine();
+                    throw new Exception();
+                }
             }
 #endif            
         }
 
-        private readonly Func<int, operation>[] operationFactories =
-        {
-            insertAfter.Create,
-            insertBefore.Create,
-            remove.Create,
-            next.Create,
-            previous.Create,
-            pushLeft.Create,
-            pushRight.Create,
-//            popLeft.Create,
-            popRight.Create
-        };
-
+        private readonly List<Func<Random, ObjectIdGenerator, Counter, IOperationResultComparer>>
+            operationComparerCreators = 
+                new List<IEnumerable<Func<Random, ObjectIdGenerator, Counter, IOperationResultComparer>>>
+                {
+                    new List<Func<ObjectIdGenerator, int, VoidOperation>>
+                    {
+                        (oig, seed) => new SelectRandomKnownNode(oig, seed)
+                    }
+                    .Select(f =>
+                        (Func<Random, ObjectIdGenerator, Counter,
+                            IOperationResultComparer>) (
+                            (rand, oig, counter) =>
+                            {
+                                int seed = rand.Next();
+                                return new VoidOperationComparer(f(oig, seed));
+                            }
+                        )
+                    ),
+                    new List<Func<ObjectIdGenerator, long,
+                        NodeReturningOperation>>
+                    {
+                        (oig, v) => new PushLeft(oig, v),
+                        (oig, v) => new PushRight(oig, v),
+                        (oig, v) => new InsertBefore(oig, v),
+                        (oig, v) => new InsertAfter(oig, v)
+                    }
+                    .Select(f =>
+                        (Func<Random, ObjectIdGenerator, Counter,
+                            IOperationResultComparer>)
+                        (
+                            (rand, oig, counter) =>
+                                new NodeReturningOperationComparer(
+                                    f(oig, counter.Count()))
+                        )
+                    ),
+                    new List<IEnumerable<Func<ObjectIdGenerator, IOperationResultComparer>>>
+                    {
+                        new List<Func<ObjectIdGenerator, VoidOperation>>
+                        {
+                            oig => new Next(oig),
+                            oig => new Previous(oig)
+                        }
+                        .Select(f => (Func<ObjectIdGenerator, IOperationResultComparer>) (
+                            oig => new VoidOperationComparer(f(oig)))),
+                        new List<Func<ObjectIdGenerator, NodeReturningOperation>>
+                        { oig => new PopRightNode(oig) }
+                        .Select(f => (Func<ObjectIdGenerator, IOperationResultComparer>) (
+                            oig => new NodeReturningOperationComparer(f(oig)))),
+                        new List<Func<ObjectIdGenerator, BoolReturningOperation>>
+                        { oig => new Remove(oig) }
+                        .Select(f => (Func<ObjectIdGenerator, IOperationResultComparer>) (
+                            oig => new BoolReturningOperationComparer(f(oig)))),
+                    }
+                    .SelectMany(e => e, (e, f) => 
+                        (Func<Random, ObjectIdGenerator, Counter,
+                            IOperationResultComparer>)
+                        ((rand, oig, counter) => f(oig))
+                    )
+                }
+                .SelectMany(e => e)
+                .ToList();
+        
         private IEnumerable<List<operationExecutionInfo>> permutations(
             List<operationExecutionInfo> executionInfos)
         {
             int i;
-
+            
             /* Sortieren nach Startzeitpunkt */
             executionInfos.Sort(
                 (t1, t2) => t1.Start.CompareTo(t2.Start));
@@ -267,25 +342,22 @@ namespace Test.Tests
             }
         }
 
-        private Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>> runOnLfdll(
-            IEnumerable<int> initial, List<executorParams> operationParamses
-#if SynchronizedLFDLL
-, Random random
-#endif
-)
+        private Tuple<List<List<operationTiming>>,
+            LockFreeDoublyLinkedList<TestListItem>>
+            runOnLfdll(TestIterationParameters parameters)
         {
-            LockFreeDoublyLinkedList<object> lfdll
-                = new LockFreeDoublyLinkedList<object>();
-            foreach (int o in initial)
-                lfdll.PushRight(o);
+            LockFreeDoublyLinkedList<TestListItem> lfdll
+                = new LockFreeDoublyLinkedList<TestListItem>();
+            foreach (int o in Enumerable.Range(0, parameters.InitialListLength))
+                lfdll.PushRight(new TestListItem(o));
 
-            var counter = new Counter();
+            var timer = new Counter();
 
             List<lfdllOperationExecutor> executors =
-                operationParamses.Select(
+                parameters.OperationSequences.Select(
                     (operationParams, name) =>
                         new lfdllOperationExecutor(operationParams, lfdll,
-                            counter, name)).ToList();
+                            timer, name)).ToList();
 
             foreach (lfdllOperationExecutor executor in executors)
                 executor.Initialize();
@@ -344,12 +416,20 @@ namespace Test.Tests
 #endif
             }
 
+            Random random = new Random(parameters.ExecutionSeed);
+#if SynchronizedLFDLL_Verbose
+            List<int> handleIndexes = new List<int>();
+#endif
+
 #if SynchronizedLFDLL
             while (true)
             {
                 if (nextStepWaitHandles.Count == 0)
                     break;
                 int nextHandleIndex = random.Next(nextStepWaitHandles.Count);
+#if SynchronizedLFDLL_Verbose
+                handleIndexes.Add(nextHandleIndex);
+#endif
 
                 AutoResetEvent nextHandle
                     = nextStepWaitHandles[nextHandleIndex];
@@ -361,54 +441,70 @@ namespace Test.Tests
             // ReSharper disable once CoVariantArrayConversion
             Task.WaitAll(executorTasks.ToArray());
 
-            return new Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<object>>(
+#if SynchronizedLFDLL_Verbose
+            Console.WriteLine(string.Join(" ", handleIndexes));
+#endif
+
+            return new Tuple<List<List<operationTiming>>,
+                LockFreeDoublyLinkedList<TestListItem>>(
                 executorTasks.Select(t => t.Result).ToList(), lfdll);
         }
 
-        private IEnumerable<object> runOnLinkedList(List<int> initial,
-            List<executorParams> executionParams,
+        private IEnumerable<TestListItem> runOnLinkedList(
+            TestIterationParameters parameters,
             List<int> executorStepOrder)
         {
-            var list = new LinkedList<object>(initial.Cast<object>());
+            var list = new LinkedList<TestListItem>(
+                Enumerable.Range(0, parameters.InitialListLength)
+                .Select(i => new TestListItem(i)));
 
             List<linkedListOperationExecutor> executors =
-                executionParams.Select(
+                parameters.OperationSequences.Select(
                     eParams => new linkedListOperationExecutor(eParams, list))
                     .ToList();
 
             foreach (linkedListOperationExecutor executor in executors)
                 executor.Initialize();
 
-            foreach (int executorIndex in executorStepOrder)
+            for (int i = 0; i < executorStepOrder.Count; i++)
+            {
+                int executorIndex = executorStepOrder[i];
                 executors[executorIndex].SingleStep();
+            }
 
-            return list.Where(value => value != null);
+            return list.Where(value => !value.Deleted);
         }
 
-        //private int findFirstByBinarySearch<T>(this List<T> list, Func<T, bool> comparison, int start)
-        //{
-        //    int lower = 0;
-        //    int upper = list.Count;
-        //    while (true)
-        //    {
-        //        if (lower == upper)
-        //            return lower;
-        //        if (comparison(list[start]))
-        //            upper = start;
-        //        else
-        //            lower = start + 1;
-        //        start = (lower + upper) / 2;
-        //    }
-        //}
-
-        private operation newRandomOperation(int newNodeValue, Random rand2)
+        private TestIterationParameters newIterationParameters(int listSize, int operationSequencesNumber, int operationNumberPerSequence, Random rand)
         {
-            return operationFactories
-                [rand2.Next(operationFactories.Length)]
-                .Invoke(newNodeValue);
+            var counter = new Counter(listSize);
+            var idGenerator = new ObjectIdGenerator();
+            return new TestIterationParameters()
+            {
+                InitialListLength = listSize,
+                OperationSequences = LinqHelper.Repeat(
+                        operationSequencesNumber,
+                        () => new ExecutionSequenceParameters
+                        {
+                            StartIndex = rand.Next(listSize),
+                            Operations =
+                                LinqHelper.Repeat(
+                                    operationNumberPerSequence,
+                                    () => newRandomOperationResultComparer(
+                                        rand, counter, idGenerator)).ToList(),
+                        }
+                    )
+                    .ToList(),
+            };
         }
 
-        //private class 
+        private IOperationResultComparer newRandomOperationResultComparer
+            (Random rand2, Counter c, ObjectIdGenerator idGenerator)
+        {
+            return operationComparerCreators[
+                rand2.Next(operationComparerCreators.Count)](
+                    rand2, idGenerator, c);
+        }
 
         private static Tuple<long, long> measureTime(Action action, Counter counter)
         {
@@ -421,28 +517,15 @@ namespace Test.Tests
 
         private class operationTiming
         {
-            public readonly operation Operation;
+            public readonly IOperationResultComparer Operation;
             public readonly long Start, End;
 
-            public operationTiming(operation operation,
+            public operationTiming(IOperationResultComparer operation,
                 Tuple<long, long> timing)
             {
                 Operation = operation;
                 Start = timing.Item1;
                 End = timing.Item2;
-            }
-        }
-
-        private class executorParams
-        {
-            public List<operation> Operations { get; private set; }
-            public int StartIndex { get; private set; }
-
-            public executorParams(
-                List<operation> operations, int startIndex)
-            {
-                Operations = operations;
-                StartIndex = startIndex;
             }
         }
 
@@ -454,14 +537,18 @@ namespace Test.Tests
              * LFDLLOperationExecutor modifies list. */
             public void Initialize()
             {
-                current = list.Head;
+                LockFreeDoublyLinkedList<TestListItem>.INode current =
+                    state.List.Head;
                 for (int i = 0; i < eParams.StartIndex + 1; i++)
                     current = current.Next;
+                state.Current = current;
             }
 
             public List<operationTiming> Run()
             {
+#if !RunOperationsSequentially
                 Thread.CurrentThread.Name = Name.ToString();
+#endif
                 return eParams.Operations
                     .Select(operation =>
                         new operationTiming(
@@ -470,18 +557,19 @@ namespace Test.Tests
                     .ToList();
             }
 
-            private Tuple<long, long> processOperation(operation op, Counter counter)
+            private Tuple<long, long> processOperation(
+                IOperationResultComparer op, Counter counter)
             {
 #if SynchronizedLFDLL_Verbose
                 Console.WriteLine("({0}) Nächste Operation: {1}", Name, op);
                 Console.WriteLine("({0}) Aktueller Knoten:", Name);
-                list.LogNode(current);
+                state.List.LogNode(state.Current);
 #endif
 
                 Tuple<long, long> timing = measureTime(
                     () =>
                     {
-                        op.RunOnLfdll(list, ref current);
+                        op.RunOnLfdll(state);
                     },
                     counter);
 
@@ -493,19 +581,18 @@ namespace Test.Tests
             }
 
             public lfdllOperationExecutor(
-                executorParams eParams,
-                LockFreeDoublyLinkedList<object> list, Counter counter,
+                ExecutionSequenceParameters eParams,
+                LockFreeDoublyLinkedList<TestListItem> list, Counter counter,
                 int name)
             {
                 this.eParams = eParams;
                 this.counter = counter;
-                this.list = list;
-                this.Name = name;
+                Name = name;
+                state = new LfdllExecutionState(list);
             }
 
-            private executorParams eParams;
-            private LockFreeDoublyLinkedList<object> list;
-            private LockFreeDoublyLinkedList<object>.INode current;
+            private ExecutionSequenceParameters eParams;
+            private LfdllExecutionState state;
             private Counter counter;
         }
 
@@ -513,40 +600,40 @@ namespace Test.Tests
         {
             public void Initialize()
             {
-                current = list.First;
+                LinkedListNode<TestListItem> current = state.List.First;
                 for (int i = 0; i < eParams.StartIndex; i++)
                 {
                     // ReSharper disable once PossibleNullReferenceException
                     current = current.Next;
                 }
+                state.Current = current;
             }
 
             public void SingleStep()
             {
-                operation operation
+                IOperationResultComparer operation
                     = eParams.Operations[nextOperation];
-                operation.RunOnLinkedList(list, ref current);
+                operation.RunOnLinkedList(state);
                 nextOperation++;
             }
 
             public linkedListOperationExecutor(
-                executorParams eParams,
-                LinkedList<object> list)
+                ExecutionSequenceParameters eParams,
+                LinkedList<TestListItem> list)
             {
+                this.state = state = new LinkedListExecutionState(list);
                 this.eParams = eParams;
-                this.list = list;
             }
 
-            private executorParams eParams;
-            private LinkedList<object> list;
+            private ExecutionSequenceParameters eParams;
+            private LinkedListExecutionState state;
             private int nextOperation = 0;
-            private LinkedListNode<object> current;
         }
 
         private class operationExecutionInfo
         {
             public readonly int ExecutorIndex;
-            public readonly operation Operation;
+            public readonly IOperationResultComparer Operation;
             public readonly long Start, End;
 
             public operationExecutionInfo(
@@ -556,345 +643,6 @@ namespace Test.Tests
                 Operation = operationTiming.Operation;
                 Start = operationTiming.Start;
                 End = operationTiming.End;
-            }
-        }
-
-        private abstract class operation
-        {
-            public abstract void RunOnLinkedList(
-                LinkedList<object> list,
-                ref LinkedListNode<object> current);
-
-            public abstract void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list,
-                ref LockFreeDoublyLinkedList<object>.INode current);
-
-            public override string ToString()
-            {
-                return GetType().Name;
-            }
-        }
-
-        private class insertAfter : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                if (current != null)
-                {
-                    if (current.Value == null)
-                    {
-                        LinkedListNode<object> prev = current;
-                        while (prev.Previous != null &&
-                               prev.Previous.Value == null)
-                        {
-                            prev = prev.Previous;
-                        }
-                        list.AddBefore(prev, value);
-                    }
-                    else
-                        list.AddAfter(current, value);
-                }
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                if (current != null)
-                    current.InsertAfter(value);
-            }
-
-            public static operation Create(int value)
-            {
-                return new insertAfter(value);
-            }
-
-            public override string ToString()
-            {
-                return base.ToString() + " " + value;
-            }
-
-            private readonly int value;
-
-            private insertAfter(int value)
-            {
-                this.value = value;
-            }
-        }
-
-        private class insertBefore : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                if (current != null)
-                {
-                    LinkedListNode<object> prev = current;
-                    while (prev.Previous != null &&
-                            prev.Previous.Value == null)
-                    {
-                        prev = prev.Previous;
-                    }
-                    list.AddBefore(prev, value);
-                }
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                if (current != null)
-                    current.InsertBefore(value);
-            }
-
-            public static operation Create(int value)
-            {
-                return new insertBefore(value);
-            }
-
-            public override string ToString()
-            {
-                return base.ToString() + " " + value;
-            }
-
-            private readonly int value;
-
-            private insertBefore(int value)
-            {
-                this.value = value;
-            }
-        }
-
-        private class remove : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                if (current != null)
-                    current.Value = null;
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                if (current != null)
-                    current.Remove();
-            }
-
-            public static operation Create(int value)
-            {
-                return new remove();
-            }
-        }
-
-        private class next : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                if (current == null)
-                {
-                    current = list.Last;
-                    while (current != null && current.Value == null)
-                        current = current.Previous;
-                }
-                else
-                {
-                    do
-                        current = current.Next;
-                    while (current != null && current.Value == null);
-                }
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                if (current == null)
-                {
-                    current = list.Tail.Prev;
-                    if (current == list.Head)
-                        current = null;
-                }
-                else
-                {
-                    current = current.Next;
-                    if (current == list.Tail)
-                        current = null;
-                }
-            }
-
-            public static operation Create(int value)
-            {
-                return new next();
-            }
-        }
-
-        private class previous : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                if (current == null)
-                {
-                    current = list.First;
-                    while (current != null && current.Value == null)
-                        current = current.Next;
-                }
-                else
-                {
-                    do
-                        current = current.Previous;
-                    while (current != null && current.Value == null);
-                }
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                if (current == null)
-                {
-                    current = list.Head.Next;
-                    if (current == list.Tail)
-                        current = null;
-                }
-                else
-                {
-                    current = current.Prev;
-                    if (current == list.Head)
-                        current = null;
-                }
-            }
-
-            public static operation Create(int value)
-            {
-                return new previous();
-            }
-        }
-
-        private class pushLeft : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                list.AddFirst(value);
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                list.PushLeft(value);
-            }
-
-            public static operation Create(int value)
-            {
-                return new pushLeft(value);
-            }
-
-            public override string ToString()
-            {
-                return base.ToString() + " " + value;
-            }
-
-            private readonly int value;
-
-            private pushLeft(int value)
-            {
-                this.value = value;
-            }
-        }
-
-        private class pushRight : operation
-        {
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                LinkedListNode<object> prev = list.Last;
-                if (prev == null || prev.Value != null)
-                {
-                    list.AddLast(value);
-                    return;
-                }
-                while (prev.Previous != null &&
-                       prev.Previous.Value == null)
-                {
-                    prev = prev.Previous;
-                }
-                list.AddBefore(prev, value);
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                list.PushRight(value);
-            }
-
-            public static operation Create(int value)
-            {
-                return new pushRight(value);
-            }
-
-            public override string ToString()
-            {
-                return base.ToString() + " " + value;
-            }
-
-            private readonly int value;
-
-            private pushRight(int value)
-            {
-                this.value = value;
-            }
-        }
-
-#if PopLeft
-        private class popLeft : operation
-        {
-            // ReSharper disable once RedundantAssignment
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                LinkedListNode<object> first = list.First;
-                while (first != null && first.Value == null)
-                    first = first.Next;
-                if (first != null)
-                    first.Value = null;
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list,
-                ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                list.PopLeft();
-            }
-
-            public static operation Create(int value)
-            {
-                return new popLeft();
-            }
-        }
-#endif
-
-        private class popRight : operation
-        {
-            // ReSharper disable once RedundantAssignment
-            public override void RunOnLinkedList(
-                LinkedList<object> list, ref LinkedListNode<object> current)
-            {
-                LinkedListNode<object> last = list.Last;
-                while (last != null && last.Value == null)
-                    last = last.Previous;
-                if (last != null)
-                    last.Value = null;
-            }
-
-            public override void RunOnLfdll(
-                LockFreeDoublyLinkedList<object> list, ref LockFreeDoublyLinkedList<object>.INode current)
-            {
-                list.PopRight();
-            }
-
-            public static operation Create(int value)
-            {
-                return new popRight();
             }
         }
     }

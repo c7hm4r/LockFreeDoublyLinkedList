@@ -40,9 +40,15 @@ namespace Test
         /// <returns>The new counter value.</returns>
         public long Count()
         {
-            return Interlocked.Increment(ref value);
+            return Interlocked.Increment(ref value) - 1;
         }
 
-        private long value = 0;
+        private long value;
+
+        public Counter(long initial = 0)
+        {
+            value = initial;
+            Thread.MemoryBarrier();
+        }
     }
 }

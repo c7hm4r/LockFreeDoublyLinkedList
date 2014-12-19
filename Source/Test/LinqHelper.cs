@@ -50,5 +50,17 @@ namespace Test
             private Func<T, T, bool> comparator;
             private Func<T, int> getHashCode;
         }
+
+        public static IEnumerable<T> Repeat<T>(int count, Func<T> generator)
+        {
+            for (int i = 0; i < count; i++)
+                yield return generator();
+        }
+
+        public static IEnumerable<T> Repeat<T>(Func<T> generator)
+        {
+            while (true)
+                yield return generator();
+        }
     }
 }
