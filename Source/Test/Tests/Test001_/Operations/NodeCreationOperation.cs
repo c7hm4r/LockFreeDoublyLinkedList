@@ -9,15 +9,15 @@ namespace Test.Tests.Test001_.Operations
     abstract class NodeCreationOperation
         : NodeReturningOperation
     {
-        public long Value { get; private set; }
+        public ListItemData Value { get; private set; }
 
         public override string ToString()
         {
-            return base.ToString() + " <" + Value + ">";
+            return base.ToString() + " " + Value;
         }
 
         public NodeCreationOperation(
-            ObjectIdGenerator idGenerator, long value)
+            ObjectIdGenerator idGenerator, ListItemData value)
             : base(idGenerator)
         {
             Value = value;

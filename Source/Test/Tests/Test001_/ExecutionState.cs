@@ -8,22 +8,22 @@ using System.Text;
 namespace Test.Tests.Test001_
 {
     class LinkedListExecutionState
-        : ExecutionState<LinkedList<TestListItem>,
-            LinkedListNode<TestListItem>> 
+        : ExecutionState<LinkedList<LinkedListItem>,
+            LinkedListNode<LinkedListItem>> 
     {
         public LinkedListExecutionState(
-            LinkedList<TestListItem> list)
+            LinkedList<LinkedListItem> list)
             : base(list)
         {
         }
     }
 
     class LfdllExecutionState
-        : ExecutionState<LockFreeDoublyLinkedList<TestListItem>,
-            LockFreeDoublyLinkedList<TestListItem>.INode> 
+        : ExecutionState<LockFreeDoublyLinkedList<ListItemData>,
+            LockFreeDoublyLinkedList<ListItemData>.INode> 
     {
         public LfdllExecutionState(
-            LockFreeDoublyLinkedList<TestListItem> list)
+            LockFreeDoublyLinkedList<ListItemData> list)
             : base(list)
         {
         }

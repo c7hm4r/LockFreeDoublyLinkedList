@@ -7,10 +7,10 @@ namespace Test.Tests.Test001_.Operations
     class PopRightNode : NodeReturningOperation
     {
         // ReSharper disable once RedundantAssignment
-        public override LinkedListNode<TestListItem> RunOnLinkedList(
+        public override LinkedListNode<LinkedListItem> RunOnLinkedList(
             LinkedListExecutionState state)
         {
-            LinkedListNode<TestListItem> last = state.List.Last;
+            LinkedListNode<LinkedListItem> last = state.List.Last;
             while (last != null && last.Value.Deleted)
                 last = last.Previous;
             if (last == null)
@@ -19,10 +19,10 @@ namespace Test.Tests.Test001_.Operations
             return state.AddingToKnownNodes(last);
         }
 
-        public override LockFreeDoublyLinkedList<TestListItem>.INode RunOnLfdll(
+        public override LockFreeDoublyLinkedList<ListItemData>.INode RunOnLfdll(
             LfdllExecutionState state)
         {
-            LockFreeDoublyLinkedList<TestListItem>.INode node
+            LockFreeDoublyLinkedList<ListItemData>.INode node
                 = state.List.PopRightNode();
             if (node != null)
                 state.AddToKnownNodes(node);

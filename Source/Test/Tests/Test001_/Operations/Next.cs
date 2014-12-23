@@ -9,7 +9,7 @@ namespace Test.Tests.Test001_.Operations
         public override object RunOnLinkedList(
             LinkedListExecutionState state)
         {
-            LinkedListNode<TestListItem> current = state.Current;
+            LinkedListNode<LinkedListItem> current = state.Current;
             if (current == null)
             {
                 current = state.List.Last;
@@ -31,7 +31,7 @@ namespace Test.Tests.Test001_.Operations
         public override object RunOnLfdll(
             LfdllExecutionState state)
         {
-            LockFreeDoublyLinkedList<TestListItem>.INode current = state.Current;
+            LockFreeDoublyLinkedList<ListItemData>.INode current = state.Current;
             if (current == null)
             {
                 current = state.List.Tail.Prev;

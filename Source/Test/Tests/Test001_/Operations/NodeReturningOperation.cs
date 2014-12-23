@@ -7,8 +7,8 @@ using System.Text;
 namespace Test.Tests.Test001_.Operations
 {
     abstract class NodeReturningOperation : Operation<
-            LinkedListNode<TestListItem>,
-            LockFreeDoublyLinkedList<TestListItem>.INode>
+            LinkedListNode<LinkedListItem>,
+            LockFreeDoublyLinkedList<ListItemData>.INode>
     {
         public NodeReturningOperation(ObjectIdGenerator idGenerator) : base(idGenerator)
         {

@@ -78,6 +78,7 @@ namespace Test.Tests
             //Seed = -61631207;
             //Seed = 2078889772;
             //Seed = 234923264;
+            //Seed = -583307162;
             Random rand2 = new Random(Seed);
 
             TestIterationParameters iterationParameters =
@@ -113,14 +114,14 @@ namespace Test.Tests
 #endif
 
 #if SynchronizedLFDLL
-            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<TestListItem>> lfdllResult
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<ListItemData>> lfdllResult
                 = runOnLfdll(iterationParameters);
 #else
-            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<TestListItem>> lfdllResult
+            Tuple<List<List<operationTiming>>, LockFreeDoublyLinkedList<ListItemData>> lfdllResult
                 = runOnLfdll(iterationParameters);
 #endif
 
-            List<TestListItem> lfdllResultList = lfdllResult.Item2.ToList();
+            List<ListItemData> lfdllResultList = lfdllResult.Item2.ToList();
 
             List<operationExecutionInfo> timings
                 = lfdllResult.Item1
@@ -128,12 +129,13 @@ namespace Test.Tests
                         opTiming => new operationExecutionInfo(opTiming, i)))
                     .ToList();
 
-            IEqualityComparer<TestListItem> equalityComparer
+            IEqualityComparer<ListItemData> equalityComparer
                 = LinqHelper.ToEqualityComparer(
-                    (TestListItem item1, TestListItem item2) =>
-                        item1.Value == item2.Value,
+                    (ListItemData item1, ListItemData item2) =>
+                        item1.NodeId == item2.NodeId
+                            && item1.Value == item2.Value,
                     item =>
-                        0x51ed270b + item.Value.GetHashCode() * -1521134295);
+                        (0x51ed270b + item.GetHashCode()) * -1521134295);
 
 #if CheckCorrectness
             bool found =
@@ -168,15 +170,15 @@ namespace Test.Tests
                         lfdllResultList.Select(o => o.ToString())));
                 Console.WriteLine("linked list results:");
                 var enumerationEqualityComparer = LinqHelper
-                    .ToEqualityComparer<IEnumerable<TestListItem>>(
+                    .ToEqualityComparer<IEnumerable<ListItemData>>(
                         (e1, e2) => (
                             e1.Count() == e2.Count()
-                            && e1.Zip(e2, (i1, i2) => i1.Value == i2.Value)
+                            && e1.Zip(e2, (i1, i2) => i1.NodeId == i2.NodeId && i1.Value == i2.Value)
                                 .All(i => i)),
                         e1 => e1.Aggregate(
                             0x51ed270b,
-                            (hash, next) => hash * -1521134295 + next.Value.GetHashCode()));
-                IEnumerable<IEnumerable<TestListItem>> perms
+                            (hash, next) => (hash + next.Value.GetHashCode()) * -1521134295));
+                IEnumerable<IEnumerable<ListItemData>> perms
                     = permutations(timings)
                         .Select(
                             permTimings =>
@@ -185,8 +187,8 @@ namespace Test.Tests
                                     permTimings.Select(oei => oei.ExecutorIndex)
                                         .ToList()))
                         .Distinct(enumerationEqualityComparer);
-                foreach (IEnumerable<TestListItem> sequentialResult in
-                    perms)
+                foreach (IEnumerable<ListItemData> sequentialResult
+                    in perms)
                 {
                     Console.WriteLine(string.Join("", sequentialResult.Select(value => " \t" + value)));
                 }
@@ -194,10 +196,14 @@ namespace Test.Tests
                 Console.WriteLine("operations:");
                 foreach (operationExecutionInfo timing in timings)
                 {
-                    Console.WriteLine("   " + timing.ExecutorIndex
+                    Console.WriteLine("    " + timing.ExecutorIndex
                         + " \t" + timing.Start
                         + " \t" + timing.End
-                        + " \t" + timing.Operation);
+                        + " \t" + timing.Operation
+#if RunOperationsSequentially
+                        + " \t" + timing.Operation.LastResultsEqual
+#endif
+                        );
                 }
                 if (!found)
                 {
@@ -209,9 +215,11 @@ namespace Test.Tests
 #endif            
         }
 
-        private readonly List<Func<Random, ObjectIdGenerator, Counter, IOperationResultComparer>>
-            operationComparerCreators = 
-                new List<IEnumerable<Func<Random, ObjectIdGenerator, Counter, IOperationResultComparer>>>
+        public Test001()
+        {
+            operationComparerCreators 
+                = new List<IEnumerable<Func<Random,
+                    ObjectIdGenerator, Counter, IOperationResultComparer>>>
                 {
                     new List<Func<ObjectIdGenerator, int, VoidOperation>>
                     {
@@ -227,7 +235,7 @@ namespace Test.Tests
                             }
                         )
                     ),
-                    new List<Func<ObjectIdGenerator, long,
+                    new List<Func<ObjectIdGenerator, ListItemData,
                         NodeReturningOperation>>
                     {
                         (oig, v) => new PushLeft(oig, v),
@@ -241,7 +249,7 @@ namespace Test.Tests
                         (
                             (rand, oig, counter) =>
                                 new NodeReturningOperationComparer(
-                                    f(oig, counter.Count()))
+                                    f(oig, nextListItemData(rand, counter)))
                         )
                     ),
                     new List<IEnumerable<Func<ObjectIdGenerator, IOperationResultComparer>>>
@@ -266,11 +274,46 @@ namespace Test.Tests
                         (Func<Random, ObjectIdGenerator, Counter,
                             IOperationResultComparer>)
                         ((rand, oig, counter) => f(oig))
-                    )
+                    ),
+                    new List<Func<Random, ObjectIdGenerator,
+                        Counter, IOperationResultComparer>>
+                    {
+                        (rand, idGenerator, counter) =>
+                            new NodeReturningOperationComparer(
+                                new InsertAfterIf(idGenerator,
+                                    nextListItemData(rand, counter),
+                                    nextItemValue(rand))),
+                        (rand, idGenerator, counter) =>
+                            new ItemDataReturningOperationComparer(
+                                new CompareExchangeValue(idGenerator,
+                                    nextItemValue(rand), nextItemValue(rand))),
+                        (rand, idGenerator, counter) =>
+                            new ItemDataReturningOperationComparer(
+                                new GetValue(idGenerator)),
+                        (rand, idGenerator, counter) =>
+                            new VoidOperationComparer(
+                                new SetValue(idGenerator, nextItemValue(rand)))
+                    }
                 }
                 .SelectMany(e => e)
                 .ToList();
-        
+        }
+
+        private const int listItemValueRange = 3;
+
+        private readonly List<Func<Random, ObjectIdGenerator, Counter, IOperationResultComparer>>
+            operationComparerCreators;
+
+        private ListItemData nextListItemData(Random rand, Counter counter)
+        {
+            return new ListItemData(counter.Count(), nextItemValue(rand));
+        }
+
+        private int nextItemValue(Random rand)
+        {
+            return rand.Next(listItemValueRange);
+        }
+
         private IEnumerable<List<operationExecutionInfo>> permutations(
             List<operationExecutionInfo> executionInfos)
         {
@@ -343,13 +386,19 @@ namespace Test.Tests
         }
 
         private Tuple<List<List<operationTiming>>,
-            LockFreeDoublyLinkedList<TestListItem>>
+            LockFreeDoublyLinkedList<ListItemData>>
             runOnLfdll(TestIterationParameters parameters)
         {
-            LockFreeDoublyLinkedList<TestListItem> lfdll
-                = new LockFreeDoublyLinkedList<TestListItem>();
+            LockFreeDoublyLinkedList<ListItemData> lfdll
+                = new LockFreeDoublyLinkedList<ListItemData>();
+
+            Random initializationRandom
+                = new Random(parameters.InitializationSeed);
+
             foreach (int o in Enumerable.Range(0, parameters.InitialListLength))
-                lfdll.PushRight(new TestListItem(o));
+                lfdll.PushRight(
+                    new ListItemData(
+                        o, initializationRandom.Next(listItemValueRange)));
 
             var timer = new Counter();
 
@@ -416,7 +465,7 @@ namespace Test.Tests
 #endif
             }
 
-            Random random = new Random(parameters.ExecutionSeed);
+            Random executionRandom = new Random(parameters.ExecutionSeed);
 #if SynchronizedLFDLL_Verbose
             List<int> handleIndexes = new List<int>();
 #endif
@@ -426,7 +475,7 @@ namespace Test.Tests
             {
                 if (nextStepWaitHandles.Count == 0)
                     break;
-                int nextHandleIndex = random.Next(nextStepWaitHandles.Count);
+                int nextHandleIndex = executionRandom.Next(nextStepWaitHandles.Count);
 #if SynchronizedLFDLL_Verbose
                 handleIndexes.Add(nextHandleIndex);
 #endif
@@ -446,17 +495,26 @@ namespace Test.Tests
 #endif
 
             return new Tuple<List<List<operationTiming>>,
-                LockFreeDoublyLinkedList<TestListItem>>(
+                LockFreeDoublyLinkedList<ListItemData>>(
                 executorTasks.Select(t => t.Result).ToList(), lfdll);
         }
 
-        private IEnumerable<TestListItem> runOnLinkedList(
+        private IEnumerable<ListItemData> runOnLinkedList(
             TestIterationParameters parameters,
             List<int> executorStepOrder)
         {
-            var list = new LinkedList<TestListItem>(
+            Random initializationRandom =
+                new Random(parameters.InitializationSeed);
+
+            var list = new LinkedList<LinkedListItem>(
                 Enumerable.Range(0, parameters.InitialListLength)
-                .Select(i => new TestListItem(i)));
+                    .Select(
+                        i =>
+                            new LinkedListItem(
+                                new ListItemData(
+                                    i,
+                                    initializationRandom.Next(
+                                        listItemValueRange)))));
 
             List<linkedListOperationExecutor> executors =
                 parameters.OperationSequences.Select(
@@ -472,7 +530,7 @@ namespace Test.Tests
                 executors[executorIndex].SingleStep();
             }
 
-            return list.Where(value => !value.Deleted);
+            return list.Where(value => !value.Deleted).Select(item => item.Data);
         }
 
         private TestIterationParameters newIterationParameters(int listSize, int operationSequencesNumber, int operationNumberPerSequence, Random rand)
@@ -495,6 +553,8 @@ namespace Test.Tests
                         }
                     )
                     .ToList(),
+                InitializationSeed = rand.Next(),
+                ExecutionSeed = rand.Next(),
             };
         }
 
@@ -537,7 +597,7 @@ namespace Test.Tests
              * LFDLLOperationExecutor modifies list. */
             public void Initialize()
             {
-                LockFreeDoublyLinkedList<TestListItem>.INode current =
+                LockFreeDoublyLinkedList<ListItemData>.INode current =
                     state.List.Head;
                 for (int i = 0; i < eParams.StartIndex + 1; i++)
                     current = current.Next;
@@ -582,7 +642,7 @@ namespace Test.Tests
 
             public lfdllOperationExecutor(
                 ExecutionSequenceParameters eParams,
-                LockFreeDoublyLinkedList<TestListItem> list, Counter counter,
+                LockFreeDoublyLinkedList<ListItemData> list, Counter counter,
                 int name)
             {
                 this.eParams = eParams;
@@ -600,7 +660,7 @@ namespace Test.Tests
         {
             public void Initialize()
             {
-                LinkedListNode<TestListItem> current = state.List.First;
+                LinkedListNode<LinkedListItem> current = state.List.First;
                 for (int i = 0; i < eParams.StartIndex; i++)
                 {
                     // ReSharper disable once PossibleNullReferenceException
@@ -619,7 +679,7 @@ namespace Test.Tests
 
             public linkedListOperationExecutor(
                 ExecutionSequenceParameters eParams,
-                LinkedList<TestListItem> list)
+                LinkedList<LinkedListItem> list)
             {
                 this.state = state = new LinkedListExecutionState(list);
                 this.eParams = eParams;

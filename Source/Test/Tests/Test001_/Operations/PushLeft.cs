@@ -6,19 +6,19 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class PushLeft : NodeCreationOperation
     {
-        public override LinkedListNode<TestListItem> RunOnLinkedList(
+        public override LinkedListNode<LinkedListItem> RunOnLinkedList(
             LinkedListExecutionState state)
         {
-            return state.AddingToKnownNodes(state.List.AddFirst(new TestListItem(Value)));
+            return state.AddingToKnownNodes(state.List.AddFirst(new LinkedListItem(Value)));
         }
 
-        public override LockFreeDoublyLinkedList<TestListItem>.INode
+        public override LockFreeDoublyLinkedList<ListItemData>.INode
             RunOnLfdll(LfdllExecutionState state)
         {
-            return state.AddingToKnownNodes(state.List.PushLeft(new TestListItem(Value)));
+            return state.AddingToKnownNodes(state.List.PushLeft(Value));
         }
 
-        public PushLeft(ObjectIdGenerator idGenerator, long value)
+        public PushLeft(ObjectIdGenerator idGenerator, ListItemData value)
             : base(idGenerator, value)
         {
         }
