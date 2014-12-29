@@ -43,12 +43,12 @@ namespace Test.Tests.Test001_
         }
     }
 
-    abstract class ExecutionState<ListT, NodeT> : IExecutionState
+    abstract class ExecutionState<ListT, NodeT> : IExecutionState<NodeT>
     {
         public ListT List { get; private set; }
         public List<NodeT> KnownNodes { get; private set; }
 
-        public ICollection KnownNodesCollection
+        public ICollection<NodeT> KnownNodesCollection
         {
             get { return KnownNodes; }
         }
@@ -99,9 +99,9 @@ namespace Test.Tests.Test001_
         }
     }
 
-    interface IExecutionState
+    interface IExecutionState<NodeT>
     {
-        ICollection KnownNodesCollection { get; }
+        ICollection<NodeT> KnownNodesCollection { get; }
         int CurrentIndex { get; set; }
     }
 }

@@ -165,10 +165,17 @@ namespace Test.Tests
 
                 Console.WriteLine("seed: " + Seed);
 
-                Console.WriteLine("lfdllResult: "
+                Random initializationRandom
+                    = new Random(iterationParameters.InitializationSeed);
+                Console.WriteLine("initial: \t"
+                    + string.Join(" \t", Enumerable.Range(0, listSize).Select(
+                        i => new ListItemData(i, initializationRandom.Next(
+                            listItemValueRange)))));
+
+                Console.WriteLine("lfdllResult: \t"
                     + string.Join("\t",
                         lfdllResultList.Select(o => o.ToString())));
-                Console.WriteLine("linked list results:");
+                Console.WriteLine("linked list results: \t");
                 var enumerationEqualityComparer = LinqHelper
                     .ToEqualityComparer<IEnumerable<ListItemData>>(
                         (e1, e2) => (

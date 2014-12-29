@@ -45,7 +45,7 @@ namespace Test.Tests.Test001_.Operations
 
         private int seed;
 
-        private object run(IExecutionState state)
+        private object run<T>(IExecutionState<T> state)
         {
             state.CurrentIndex = new Random(seed)
                 .Next(state.KnownNodesCollection.Count);

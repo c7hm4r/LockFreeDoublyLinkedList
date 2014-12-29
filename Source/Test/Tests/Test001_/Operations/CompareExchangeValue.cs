@@ -56,6 +56,11 @@ namespace Test.Tests.Test001_.Operations
             }
         }
 
+        public override string ToString()
+        {
+            return base.ToString() + " " + oldValue + " " + newValue;
+        }
+
         public CompareExchangeValue(ObjectIdGenerator idGenerator, int oldValue, int newValue)
             : base(idGenerator)
         {
