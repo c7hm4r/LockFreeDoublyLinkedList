@@ -51,7 +51,7 @@ namespace LockFreeDoublyLinkedList
             while (true)
             {
                 current = current.Next;
-                if (current == null)
+                if (current == Tail)
                     yield break;
                 yield return current.Value;
             }
@@ -1266,7 +1266,7 @@ namespace LockFreeDoublyLinkedList
                         continue;
                     }
                     cursor = next;
-                    if (!d && next != List_.tailNode)
+                    if (!d)
                         return true;
                 }
             }
@@ -1312,8 +1312,7 @@ namespace LockFreeDoublyLinkedList
                     if (b)
                     {
                         cursor = prev;
-                        if (prev != List_.headNode)
-                            return true;
+                        return true;
                     }
                     else
                     {
