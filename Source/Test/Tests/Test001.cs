@@ -32,7 +32,7 @@
  * and don’t become entangled in a deadlock.
  * Additionally, output the seed number.
  * May exacerbate the exception handling in the IDE, though. */
-//#define HandleTaskExceptionImmediately
+#define HandleTaskExceptionImmediately
 /* PopLeft is not atomic supported by the current LFDLL implementation. */
 //#define PopLeft
 
