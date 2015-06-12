@@ -444,8 +444,8 @@ namespace LockFreeDoublyLinkedList
             /// Returns the corresponding LockFreeDoublyLinkedList
             /// of the current node instance.
             /// </summary>
-            LockFreeDoublyLinkedList<T> List { get; } 
-                
+            LockFreeDoublyLinkedList<T> List { get; }
+
             /// <summary>
             /// The right neighbor node or null,
             /// if the current node is the dummy tail node.
@@ -461,6 +461,12 @@ namespace LockFreeDoublyLinkedList
             /// Returns, if the current node has been removed.
             /// </summary>
             bool Removed { get; }
+
+            /// <summary>
+            /// Returns, if the current node is
+            /// the dummy head or dummy tail node of List.
+            /// </summary>
+            bool IsDummyNode { get; }
 
             /// <summary>
             /// Inserts a new node left beside the current node instance.
@@ -910,11 +916,16 @@ namespace LockFreeDoublyLinkedList
                 get { return List_; }
             }
 
+            public bool IsDummyNode
+            {
+                get { return this == List_.headNode || this == List_.tailNode; }
+            }
+
             public T Value
             {
                 get
                 {
-                    if (this == List_.headNode || this == List_.tailNode)
+                    if (IsDummyNode)
                         throwIsDummyNodeException();
                     /* At the commented out code it is assumed
                      * that Value_ is not allowed to be readout
@@ -931,7 +942,7 @@ namespace LockFreeDoublyLinkedList
                 }
                 set
                 {
-                    if (this == List_.headNode || this == List_.tailNode)
+                    if (IsDummyNode)
                         throwIsDummyNodeException();
                     Thread.MemoryBarrier();
                     while (true)
@@ -999,7 +1010,7 @@ namespace LockFreeDoublyLinkedList
 
             public INode InsertAfterIf(T newValue, Func<T, bool> condition)
             {
-                if (this == List_.tailNode || this == List_.headNode)
+                if (IsDummyNode)
                     return null;
 
                 SpinWait spin = new SpinWait();
@@ -1041,7 +1052,7 @@ namespace LockFreeDoublyLinkedList
                             cexSuccess = false;
                             break;
                         }
-                        
+
                         List_.enterTestSynchronizedBlock();
                         valueNodeLinkPair prevalent
                             = Interlocked.CompareExchange
@@ -1090,7 +1101,7 @@ namespace LockFreeDoublyLinkedList
 
             public bool Remove() // out T lastValue
             {
-                if (this == List_.headNode || this == List_.tailNode)
+                if (IsDummyNode)
                 {
                     // lastValue = default(T);
                     return false;
