@@ -6,11 +6,11 @@
     <title>$title$</title>
     <authors>$author$</authors>
     <owners>$author$</owners>
-    <projectUrl>https://github.com/2i/lfdll</projectUrl>
+    <projectUrl>https://github.com/2i/LockFreeDoublyLinkedList</projectUrl>
     <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>$description$</description>
-    <copyright>Copyright 2014</copyright>
-    <tags>lock-free thread-safe linked list</tags>
+    <copyright>Copyright 2015</copyright>
+    <tags>lock-free thread-safe linked list concurrency</tags>
   </metadata>
 </package>
