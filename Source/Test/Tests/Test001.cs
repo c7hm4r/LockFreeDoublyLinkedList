@@ -13,6 +13,9 @@
 //limitations under the License.
 
 
+/* To find errors fast run the Test without debugger attached,
+ * this dramatically increases the test frequency (approx. factor 10). */
+
 /* For reproducibility by reference of the seed number,
  * if a error has been found.
  * However, modifies the code insofar
