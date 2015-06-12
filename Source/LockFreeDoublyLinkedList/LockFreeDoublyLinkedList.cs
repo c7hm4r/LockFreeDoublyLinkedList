@@ -915,7 +915,7 @@ namespace LockFreeDoublyLinkedList
                 get
                 {
                     if (this == List_.headNode || this == List_.tailNode)
-                        throw new InvalidOperationException();
+                        throwIsDummyNodeException();
                     /* At the commented out code it is assumed
                      * that Value_ is not allowed to be readout
                      * once the node was deleted.
@@ -932,7 +932,7 @@ namespace LockFreeDoublyLinkedList
                 set
                 {
                     if (this == List_.headNode || this == List_.tailNode)
-                        throw new InvalidOperationException();
+                        throwIsDummyNodeException();
                     Thread.MemoryBarrier();
                     while (true)
                     {
@@ -1192,6 +1192,14 @@ namespace LockFreeDoublyLinkedList
             private static long nextId = 0;
 
 #endif
+
+            private void throwIsDummyNodeException()
+            {
+                throw new InvalidOperationException(
+                    "The current node is the dummy head or dummy tail node " +
+                    "of the current List, so it may not store any value.");
+            }
+
             private bool toNext(ref node cursor)
             {
                 while (true)
