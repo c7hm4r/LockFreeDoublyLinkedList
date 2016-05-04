@@ -1,61 +1,62 @@
-﻿//Copyright 2014 Christoph Müller
+﻿#region license
+// Copyright 2016 Christoph Müller
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
 
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-
-//   http://www.apache.org/licenses/LICENSE-2.0
-
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-
-using LockFreeDoublyLinkedList;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
+using LockFreeDoublyLinkedList;
 
 namespace Test.Tests.Test001_
 {
-    class LinkedListExecutionState
+	internal class LinkedListExecutionState
         : ExecutionState<LinkedList<LinkedListItem>,
             LinkedListNode<LinkedListItem>> 
     {
-        public LinkedListExecutionState(
+	    public LinkedListExecutionState(
             LinkedList<LinkedListItem> list)
             : base(list)
         {
         }
     }
 
-    class LfdllExecutionState
-        : ExecutionState<LockFreeDoublyLinkedList<ListItemData>,
-            LockFreeDoublyLinkedList<ListItemData>.INode> 
+	internal class LfdllExecutionState
+        : ExecutionState<ILockFreeDoublyLinkedList<ListItemData>,
+            ILockFreeDoublyLinkedListNode<ListItemData>> 
     {
-        public LfdllExecutionState(
-            LockFreeDoublyLinkedList<ListItemData> list)
+	    public LfdllExecutionState(
+            ILockFreeDoublyLinkedList<ListItemData> list)
             : base(list)
         {
         }
     }
 
-    abstract class ExecutionState<ListT, NodeT> : IExecutionState<NodeT>
+	internal abstract class ExecutionState<ListT, NodeT> : IExecutionState<NodeT>
     {
-        public ListT List { get; private set; }
-        public List<NodeT> KnownNodes { get; private set; }
+	    public ListT List { get; private set; }
+	    public List<NodeT> KnownNodes { get; private set; }
 
-        public ICollection<NodeT> KnownNodesCollection
+	    public ICollection<NodeT> KnownNodesCollection
         {
             get { return KnownNodes; }
         }
 
-        public int CurrentIndex { get; set; }
+	    public int CurrentIndex { get; set; }
 
-        /// <summary>
+	    /// <summary>
         /// Adds a node to the list of known nodes.
         /// </summary>
         /// <param name="node">The node to add.</param>
@@ -74,7 +75,7 @@ namespace Test.Tests.Test001_
             return i;
         }
 
-        /// <summary>
+	    /// <summary>
         /// Adds a node to the list of known nodes
         /// and returns the same node.
         /// </summary>
@@ -86,22 +87,22 @@ namespace Test.Tests.Test001_
             return node;
         }
 
-        public NodeT Current
+	    public NodeT Current
         {
             get { return KnownNodes[CurrentIndex]; }
             set { CurrentIndex = AddToKnownNodes(value); }
         }
 
-        public ExecutionState(ListT list)
+	    public ExecutionState(ListT list)
         {
             List = list;
             KnownNodes = new List<NodeT>();
         }
     }
 
-    interface IExecutionState<NodeT>
+	internal interface IExecutionState<NodeT>
     {
-        ICollection<NodeT> KnownNodesCollection { get; }
-        int CurrentIndex { get; set; }
+	    ICollection<NodeT> KnownNodesCollection { get; }
+	    int CurrentIndex { get; set; }
     }
 }

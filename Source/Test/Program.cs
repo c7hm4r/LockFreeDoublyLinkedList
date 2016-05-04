@@ -1,33 +1,38 @@
-﻿//Copyright 2014 Christoph Müller
-
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-
-//   http://www.apache.org/licenses/LICENSE-2.0
-
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-
+﻿#region license
+// Copyright 2016 Christoph Müller
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Test.Tests;
 
 namespace Test
 {
-    class Program
+	internal class Program
     {
-        static void Main(string[] args)
+	    #region private
+		private static void Main(string[] args)
         {
             Random rand = new Random();
 
             int scheduledRepetitions = 1;
-            var t2 = new HiPerfTimer.HpTimer();
-            var t3 = new HiPerfTimer.HpTimer();
+            var t2 = new HpTimer();
+            var t3 = new HpTimer();
             long schedRepsOnT3Start = scheduledRepetitions;
             t2.Start();
             t3.Start();
@@ -71,7 +76,7 @@ namespace Test
                 var test = new Test001();
                 test.Seed = rand.Next(int.MinValue, int.MaxValue);
                 //Console.WriteLine("seed: {0}", test.Seed);
-                var t = new HiPerfTimer.HpTimer();
+                var t = new HpTimer();
                 t.Start();
                 Thread.MemoryBarrier();
 
@@ -82,10 +87,12 @@ namespace Test
                 //Console.WriteLine("Duration: " + t.Duration + " s.");
             }
         }
+	    #endregion
     }
-    abstract class Test
+
+	internal abstract class Test
     {
-        public abstract void Main(string[] args);
-        public int Seed { get; set; }
+	    public abstract void Main(string[] args);
+	    public int Seed { get; set; }
     }
 }

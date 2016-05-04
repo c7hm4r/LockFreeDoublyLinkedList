@@ -1,40 +1,35 @@
-﻿//Copyright 2014 Christoph Müller
+﻿#region license
+// Copyright 2016 Christoph Müller
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
 
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-
-//   http://www.apache.org/licenses/LICENSE-2.0
-
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-
-
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace HiPerfTimer
+namespace Test
 {
+	// HiPerfTimer
     public class HpTimer
     {
-        [DllImport("Kernel32.dll")]
-        private static extern bool QueryPerformanceCounter(
-            out long lpPerformanceCount);
+	    // Constructor
 
-        [DllImport("Kernel32.dll")]
-        private static extern bool QueryPerformanceFrequency(
-            out long lpFrequency);
-
-        private long startTime, stopTime;
-        private long freq;
-
-        // Constructor
-
-        public static long Ticks
+	    public static long Ticks
         {
             get
             {
@@ -44,7 +39,7 @@ namespace HiPerfTimer
             }
         }
 
-        public static long Frequency
+	    public static long Frequency
         {
             get
             {
@@ -54,22 +49,9 @@ namespace HiPerfTimer
             }
         }
 
-        public HpTimer()
-        {
-            startTime = 0;
-            stopTime = 0;
+	    // Start the timer
 
-            if (QueryPerformanceFrequency(out freq) == false)
-            {
-                // high-performance counter not supported
-
-                throw new Win32Exception();
-            }
-        }
-
-        // Start the timer
-
-        public void Start()
+	    public void Start()
         {
             // lets do the waiting threads there work
 
@@ -78,14 +60,14 @@ namespace HiPerfTimer
             QueryPerformanceCounter(out startTime);
         }
 
-        // Stop the timer
+	    // Stop the timer
 
-        public void Stop()
+	    public void Stop()
         {
             QueryPerformanceCounter(out stopTime);
         }
 
-        /// <summary>
+	    /// <summary>
         /// Time passed since start in seconds.
         /// </summary>
         public double TimeSinceStart
@@ -98,14 +80,40 @@ namespace HiPerfTimer
             }
         }
 
-        // Returns the duration of the timer (in seconds)
+	    // Returns the duration of the timer (in seconds)
 
-        public double Duration
+	    public double Duration
         {
             get
             {
                 return (double)(stopTime - startTime) / (double)freq;
             }
         }
+
+	    public HpTimer()
+        {
+            startTime = 0;
+            stopTime = 0;
+
+            if (QueryPerformanceFrequency(out freq) == false)
+            {
+                // high-performance counter not supported
+
+                throw new Win32Exception();
+            }
+        }
+
+	    #region private
+	    private long startTime, stopTime;
+	    private readonly long freq;
+
+	    [DllImport("Kernel32.dll")]
+        private static extern bool QueryPerformanceCounter(
+            out long lpPerformanceCount);
+
+	    [DllImport("Kernel32.dll")]
+        private static extern bool QueryPerformanceFrequency(
+            out long lpFrequency);
+	    #endregion
     }
 }

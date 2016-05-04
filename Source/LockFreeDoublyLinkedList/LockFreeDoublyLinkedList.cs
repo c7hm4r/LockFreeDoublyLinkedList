@@ -1,27 +1,18 @@
-﻿//Copyright 2014 Christoph Müller
-
-//Licensed under the Apache License, Version 2.0 (the "License");
-//you may not use this file except in compliance with the License.
-//You may obtain a copy of the License at
-
-//   http://www.apache.org/licenses/LICENSE-2.0
-
-//Unless required by applicable law or agreed to in writing, software
-//distributed under the License is distributed on an "AS IS" BASIS,
-//WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//See the License for the specific language governing permissions and
-//limitations under the License.
-
-
-//#define SynchronizedLfdll
-//#define Verbose
-//#define DEBUG
-
-/* Atomicity of the PopLeft method is not supported
- * by the current LFDLL implementation. */
-//#define PopLeft
-
-
+﻿#region license
+// Copyright 2016 Christoph Müller
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+//    http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
 #if SynchronizedLfdll
 #if Verbose
 #define SynchronizedLfdll_Verbose
@@ -29,1368 +20,1275 @@
 #endif
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace LockFreeDoublyLinkedList
 {
-    /// <summary>
-    /// A lock free doubly linked list for high concurrency.
-    /// </summary>
-    /// <typeparam name="T">The type of the values.</typeparam>
-    public class LockFreeDoublyLinkedList<T> : IEnumerable<T>
-        where T : class
-    {
-        /// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>A IEnumerator&lt;T&gt; that can be used to iterate through the collection.</returns>
-        public IEnumerator<T> GetEnumerator()
-        {
-            INode current = Head;
-            while (true)
-            {
-                current = current.Next;
-                if (current == Tail)
-                    yield break;
-                yield return current.Value;
-            }
-        }
+	/// <summary>
+	/// Provides an implementation of a LockFree DoublyLinkedList.
+	/// </summary>
+	public static class LockFreeDoublyLinkedList
+	{
+		/// <summary>
+		/// Creates a new <see cref="ILockFreeDoublyLinkedList{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">
+		/// The type of the elements in the created
+		/// <see cref="ILockFreeDoublyLinkedList{T}"/>.
+		/// </typeparam>
+		/// <returns>The newly created instance.</returns>
+		public static ILockFreeDoublyLinkedList<T> Create<T>()
+			where T : class
+		{
+			return new lockFreeDoublyLinkedList<T>();
+		}
 
-        /// <summary>
-        /// Returns an enumerator that iterates through the collection.
-        /// </summary>
-        /// <returns>A IEnumerator&lt;T&gt; that can be used to iterate through the collection.</returns>
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+		/// <summary>
+		/// Creates a new <see cref="ILockFreeDoublyLinkedList{T}"/>.
+		/// </summary>
+		/// <typeparam name="T">
+		/// The type of the elements in the created
+		/// <see cref="ILockFreeDoublyLinkedList{T}"/>.
+		/// </typeparam>
+		/// <param name="initial">
+		/// The initial elements in the created list.
+		/// </param>
+		/// <returns>The newly created instance.</returns>
+		public static ILockFreeDoublyLinkedList<T> Create<T>(
+				IEnumerable<T> initial)
+			where T : class
+		{
+			return new lockFreeDoublyLinkedList<T>(initial);
+		}
 
-        /// <summary>
-        /// The dummy head node (leftmost).
-        /// </summary>
-        public INode Head { get { return headNode; } }
-        /// <summary>
-        /// The dummy tail node (rightmost).
-        /// </summary>
-        public INode Tail { get { return tailNode; } }
+		#region private
+		private static bool compareExchangeNodeLink<T>(ref nodeLink<T> location,
+			nodeLink<T> value, nodeLink<T> comparandByValue) where T : class
+		{
+			return ThreadingAdditions
+				.ConditionalCompareExchange(ref location,
+					value, original => original.Equals(comparandByValue));
+		}
 
-        /// <summary>
-        /// Inserts a new node at the head position.
-        /// </summary>
-        /// <param name="value">The initial value of the new node.</param>
-        /// <returns>The new inserted node.</returns>
-        public INode PushLeft(T value)
-        {
-            SpinWait spin = new SpinWait();
-            node node = new node(this);
-            node prev = headNode;
+		private static bool compareExchangeNodeLinkInPair<T>(
+			ref valueNodeLinkPair<T> location, nodeLink<T> newLink,
+			nodeLink<T> comparadByValue) where T : class
+		{
+			Thread.MemoryBarrier();
+			T currentValue = location.Value;
+			return ThreadingAdditions
+				.ConditionalCompareExchange(ref location,
+					new valueNodeLinkPair<T>(currentValue, newLink),
+					original =>
+						original.Link.Equals(comparadByValue)
+							&& ReferenceEquals(original.Value, currentValue));
+		}
 
-            Thread.MemoryBarrier();
-            enterTestSynchronizedBlock();
-            node next = prev.Next_.Link.P;
+		private class lockFreeDoublyLinkedList<T> :
+			ILockFreeDoublyLinkedList<T> where T : class
+		{
+			public readonly node<T> HeadNode;
+			public readonly node<T> TailNode;
+
+			public IEnumerator<T> GetEnumerator()
+			{
+				ILockFreeDoublyLinkedListNode<T> current = Head;
+				while (true)
+				{
+					current = current.Next;
+					if (current == Tail)
+						yield break;
+					yield return current.Value;
+				}
+			}
+
+			public ILockFreeDoublyLinkedListNode<T> Head => HeadNode;
+
+			public ILockFreeDoublyLinkedListNode<T> Tail => TailNode;
+
+			public ILockFreeDoublyLinkedListNode<T> PushLeft(T value)
+			{
+				SpinWait spin = new SpinWait();
+				node<T> node = new node<T>(this);
+				node<T> prev = HeadNode;
+
+				Thread.MemoryBarrier();
+				EnterTestSynchronizedBlock();
+				node<T> next = prev.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-            Console.WriteLine("PushLeft {0} Step 0", value);
-            Console.WriteLine("next =");
-            LogNode(next);
+				Console.WriteLine("PushLeft {0} Step 0", value);
+				Console.WriteLine("next =");
+				LogNode(next);
 #endif
-            leaveTestSynchronizedBlock();
+				LeaveTestSynchronizedBlock();
 
-            while (true)
-            {
-                /* node has not been made public yet,
-                 * so no synchronization constructs are necessary. */
-                node.Prev_ = new nodeLink(prev, false);
-                node.Next_ = new valueNodeLinkPair
-                    (value, new nodeLink(next, false));
+				while (true)
+				{
+					/* node has not been made public yet,
+					 * so no synchronization constructs are necessary. */
+					node.Prev_ = new nodeLink<T>(prev, false);
+					node.Next_ = new valueNodeLinkPair<T>(value, new nodeLink<T>(next, false));
 
-                enterTestSynchronizedBlock();
-                bool b = compareExchangeNodeLinkInPair(ref prev.Next_,
-                    new nodeLink(node, false),
-                    new nodeLink(next, false));
+					EnterTestSynchronizedBlock();
+					bool b = compareExchangeNodeLinkInPair(ref prev.Next_,
+						new nodeLink<T>(node, false),
+						new nodeLink<T>(next, false));
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PushLeft {0} Step 1", value);
-                Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(node, false)),
-                    nodeLinkDescription(new nodeLink(next, false)),
-                    b);
-                Console.WriteLine("prev = ");
-                LogNode(prev);
-                LogState();
+					Console.WriteLine("PushLeft {0} Step 1", value);
+					Console.WriteLine(
+						"compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(node, false)),
+						NodeLinkDescription(new nodeLink<T>(next, false)),
+						b);
+					Console.WriteLine("prev = ");
+					LogNode(prev);
+					LogState();
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b)
-                    break;
+					if (b)
+						break;
 
-                /* Not necessary because of preceding compareExchange. */
-                // Thread.MemoryBarrier();
+					/* Not necessary because of preceding compareExchange. */
+					// Thread.MemoryBarrier();
 
-                enterTestSynchronizedBlock();
-                next = prev.Next_.Link.P;
+					EnterTestSynchronizedBlock();
+					next = prev.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PushLeft {0} Step 2", value);
-                Console.WriteLine("next =");
-                LogNode(next);
+					Console.WriteLine("PushLeft {0} Step 2", value);
+					Console.WriteLine("next =");
+					LogNode(next);
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                spin.SpinOnce();
-            }
-            pushEnd(node, next, spin);
-            Thread.MemoryBarrier();
-            return node;
-        }
-        /// <summary>
-        /// Inserts a new node at the tail position.
-        /// </summary>
-        /// <param name="value">The initial value of the new node.</param>
-        /// <returns>The new inserted node.</returns>
-        public INode PushRight(T value)
-        {
-            SpinWait spin = new SpinWait();
-            node node = new node(this);
-            node next = tailNode;
+					spin.SpinOnce();
+				}
+				pushEnd(node, next, spin);
+				Thread.MemoryBarrier();
+				return node;
+			}
 
-            Thread.MemoryBarrier();
-            enterTestSynchronizedBlock();
-            node prev = next.Prev_.P;
+			public ILockFreeDoublyLinkedListNode<T> PushRight(T value)
+			{
+				SpinWait spin = new SpinWait();
+				node<T> node = new node<T>(this);
+				node<T> next = TailNode;
+
+				Thread.MemoryBarrier();
+				EnterTestSynchronizedBlock();
+				node<T> prev = next.Prev_.P;
 #if SynchronizedLfdll_Verbose
-            Console.WriteLine("PushRight {0} Step 0", value);
-            Console.WriteLine("prev = ");
-            LogNode(prev);
+				Console.WriteLine("PushRight {0} Step 0", value);
+				Console.WriteLine("prev = ");
+				LogNode(prev);
 #endif
-            leaveTestSynchronizedBlock();
+				LeaveTestSynchronizedBlock();
 
-            while (true)
-            {
-                /* node has not been made public yet,
-                 * so no threading constructs are necessary. */
-                node.Prev_ = new nodeLink(prev, false);
-                node.Next_ = new valueNodeLinkPair
-                    (value, new nodeLink(next, false));
+				while (true)
+				{
+					/* node has not been made public yet,
+					 * so no threading constructs are necessary. */
+					node.Prev_ = new nodeLink<T>(prev, false);
+					node.Next_ = new valueNodeLinkPair<T>(value, new nodeLink<T>(next, false));
 
-                enterTestSynchronizedBlock();
-                bool b = compareExchangeNodeLinkInPair(ref prev.Next_,
-                    new nodeLink(node, false),
-                    new nodeLink(next, false));
+					EnterTestSynchronizedBlock();
+					bool b = compareExchangeNodeLinkInPair(ref prev.Next_,
+						new nodeLink<T>(node, false),
+						new nodeLink<T>(next, false));
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PushRight {0} Step 1", value);
-                Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(node, false)),
-                    nodeLinkDescription(new nodeLink(next, false)),
-                    b);
-                Console.WriteLine("prev = ");
-                LogNode(prev);
-                LogState();
+					Console.WriteLine("PushRight {0} Step 1", value);
+					Console.WriteLine(
+						"compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(node, false)),
+						NodeLinkDescription(new nodeLink<T>(next, false)),
+						b);
+					Console.WriteLine("prev = ");
+					LogNode(prev);
+					LogState();
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b)
-                    break;
+					if (b)
+						break;
 
-                prev = correctPrev(prev, next);
-                spin.SpinOnce();
-            }
-            pushEnd(node, next, spin);
-            Thread.MemoryBarrier();
-            return node;
-        }
+					prev = CorrectPrev(prev, next);
+					spin.SpinOnce();
+				}
+				pushEnd(node, next, spin);
+				Thread.MemoryBarrier();
+				return node;
+			}
 
 #if PopLeft
-        /// <summary>
-        /// Removes the leftmost non-dummy node and returns its value.
-        /// </summary>
-        /// <returns>The value of the removed node.</returns>
-        public Tuple<T> PopLeft()
-        {
-            SpinWait spin = new SpinWait();
-            node prev = headNode;
-            while (true)
-            {
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                node node = prev.Next_.Link.P;
+			[Obsolete("This method is not supported.", false)]
+			public Tuple<T> PopLeft()
+			{
+				SpinWait spin = new SpinWait();
+				node<T> prev = HeadNode;
+				while (true)
+				{
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					node<T> node = prev.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PopLeft Step 0");
-                Console.WriteLine("node = ");
-                LogNode(node);
+					Console.WriteLine("PopLeft Step 0");
+					Console.WriteLine("node = ");
+					LogNode(node);
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (node == tailNode)
-                {
-                    Thread.MemoryBarrier();
-                    return null;
-                }
+					if (node == TailNode)
+					{
+						Thread.MemoryBarrier();
+						return null;
+					}
 
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                nodeLink next = node.Next_.Link;
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					nodeLink<T> next = node.Next_.Link;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PopLeft Step 1");
-                Console.WriteLine("next = {0}", nodeLinkDescription(next));
+					Console.WriteLine("PopLeft Step 1");
+					Console.WriteLine("next = {0}", NodeLinkDescription(next));
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (next.D)
-                {
-                    setMark(ref node.Prev_);
+					if (next.D)
+					{
+						SetMark(ref node.Prev_);
 
-                    enterTestSynchronizedBlock();
-                    // ReSharper disable once UnusedVariable
-                    bool b1 = compareExchangeNodeLinkInPair(ref prev.Next_,
-                        new nodeLink(next.P, false),
-                        (nodeLink)node);
+						EnterTestSynchronizedBlock();
+						// ReSharper disable once UnusedVariable
+						bool b1 = compareExchangeNodeLinkInPair(ref prev.Next_,
+							new nodeLink<T>(next.P, false),
+							(nodeLink<T>)node);
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("PopLeft Step 2");
-                    Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
-                        nodeLinkDescription(new nodeLink(next.P, false)),
-                        nodeLinkDescription((nodeLink)node),
-                        b1);
-                    Console.WriteLine("prev = ");
-                    LogNode(prev);
-                    LogState();
+						Console.WriteLine("PopLeft Step 2");
+						Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
+							NodeLinkDescription(new nodeLink<T>(next.P, false)),
+							NodeLinkDescription((nodeLink<T>)node),
+							b1);
+						Console.WriteLine("prev = ");
+						LogNode(prev);
+						LogState();
 #endif
-                    leaveTestSynchronizedBlock();
+						LeaveTestSynchronizedBlock();
 
-                    continue;
-                }
+						continue;
+					}
 
-                enterTestSynchronizedBlock();
-                bool b = compareExchangeNodeLinkInPair(ref node.Next_,
-                    new nodeLink(next.P, true), next);
+					EnterTestSynchronizedBlock();
+					bool b = compareExchangeNodeLinkInPair(ref node.Next_,
+						new nodeLink<T>(next.P, true), next);
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PopLeft Step 3");
-                Console.WriteLine("compareExchangeNlIp(ref node.Next_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(next.P, true)),
-                    nodeLinkDescription(next),
-                    b);
-                Console.WriteLine("node = ");
-                LogNode(node);
-                LogState();
+					Console.WriteLine("PopLeft Step 3");
+					Console.WriteLine("compareExchangeNlIp(ref node.Next_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(next.P, true)),
+						NodeLinkDescription(next),
+						b);
+					Console.WriteLine("node = ");
+					LogNode(node);
+					LogState();
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b)
-                {
-                    correctPrev(prev, next.P);
+					if (b)
+					{
+						CorrectPrev(prev, next.P);
 
-                    Thread.MemoryBarrier();
-                    enterTestSynchronizedBlock();
-                    T value = node.Next_.Value;
+						Thread.MemoryBarrier();
+						EnterTestSynchronizedBlock();
+						T value = node.Next_.Value;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("PopLeft Step 4");
-                    Console.WriteLine("value = {0}", value);
+						Console.WriteLine("PopLeft Step 4");
+						Console.WriteLine("value = {0}", value);
 #endif
-                    leaveTestSynchronizedBlock();
+						LeaveTestSynchronizedBlock();
 
-                    Thread.MemoryBarrier();
-                    return new Tuple<T>(value);
-                }
+						Thread.MemoryBarrier();
+						return new Tuple<T>(value);
+					}
 
-                spin.SpinOnce();
-            }
-        }
+					spin.SpinOnce();
+				}
+			}
 #endif
-        /// <summary>
-        /// Removes the rightmost non-dummy node if it exists
-        /// and returns its value after the removal.
-        /// </summary>
-        /// <returns>
-        /// null, if the list is empty; else a Tuple&lt;T&gt;,
-        /// which contains the value of the removed node.
-        /// </returns>
-        [ObsoleteAttribute("This method is not atomar. For clarity use PopRightNode instead.", false)]
-        public Tuple<T> PopRight()
-        {
-            INode node = PopRightNode();
-            if (node == null)
-                return null;
-            return Tuple.Create(node.Value);
-        }
 
-        /// <summary>
-        /// Removes the rightmost non-dummy node, if it exists.
-        /// </summary>
-        /// <returns>
-        /// null, if the list is empty; else the removed node.
-        /// </returns>
-        public INode PopRightNode()
-        {
-            SpinWait spin = new SpinWait();
-            node next = tailNode;
+#if PopRight
+			[Obsolete("This method is not atomar. For clarity use PopRightNode instead.", false)]
+			public Tuple<T> PopRight()
+			{
+				ILockFreeDoublyLinkedListNode<T> node = PopRightNode();
+				if (node == null)
+					return null;
+				return Tuple.Create(node.Value);
+			}
+#endif
 
-            Thread.MemoryBarrier();
-            enterTestSynchronizedBlock();
-            node node = next.Prev_.P;
+			public ILockFreeDoublyLinkedListNode<T> PopRightNode()
+			{
+				SpinWait spin = new SpinWait();
+				node<T> next = TailNode;
+
+				Thread.MemoryBarrier();
+				EnterTestSynchronizedBlock();
+				node<T> node = next.Prev_.P;
 #if SynchronizedLfdll_Verbose
-            Console.WriteLine("PopRight Step 0");
-            Console.WriteLine("node  =");
-            LogNode(node);
+				Console.WriteLine("PopRightNode Step 0");
+				Console.WriteLine("node  =");
+				LogNode(node);
 #endif
-            leaveTestSynchronizedBlock();
+				LeaveTestSynchronizedBlock();
 
-            while (true)
-            {
+				while (true)
+				{
 
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                bool b = !node.Next_.Link.Equals(new nodeLink(next, false));
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					bool b = !node.Next_.Link.Equals(new nodeLink<T>(next, false));
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PopRight Step 1");
-                Console.WriteLine("b = {0}", b);
+					Console.WriteLine("PopRightNode Step 1");
+					Console.WriteLine("b = {0}", b);
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b)
-                {
-                    node = correctPrev(node, next);
-                    continue;
-                }
+					if (b)
+					{
+						node = CorrectPrev(node, next);
+						continue;
+					}
 
-                if (node == headNode)
-                {
-                    Thread.MemoryBarrier();
-                    return null;
-                }
+					if (node == HeadNode)
+					{
+						Thread.MemoryBarrier();
+						return null;
+					}
 
-                enterTestSynchronizedBlock();
-                bool b1 = compareExchangeNodeLinkInPair(ref node.Next_,
-                    new nodeLink(next, true),
-                    new nodeLink(next, false));
+					EnterTestSynchronizedBlock();
+					bool b1 = compareExchangeNodeLinkInPair(ref node.Next_,
+						new nodeLink<T>(next, true),
+						new nodeLink<T>(next, false));
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("PopRight Step 2");
-                Console.WriteLine("compareExchangeNlIp(ref node.Next_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(next, true)),
-                    nodeLinkDescription(new nodeLink(next, false)),
-                    b1);
-                Console.WriteLine("node = ");
-                LogNode(node);
-                LogState();
+					Console.WriteLine("PopRightNode Step 2");
+					Console.WriteLine(
+						"compareExchangeNlIp(ref node.Next_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(next, true)),
+						NodeLinkDescription(new nodeLink<T>(next, false)),
+						b1);
+					Console.WriteLine("node = ");
+					LogNode(node);
+					LogState();
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b1)
-                {
-                    /* Not necessary because of preceding compareExchange. */
-                    // Thread.MemoryBarrier();
+					if (b1)
+					{
+						/* Not necessary because of preceding compareExchange. */
+						// Thread.MemoryBarrier();
 
-                    enterTestSynchronizedBlock();
-                    node prev = node.Prev_.P;
+						EnterTestSynchronizedBlock();
+						node<T> prev = node.Prev_.P;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("PopRight Step 3");
-                    Console.WriteLine("prev =");
-                    LogNode(prev);
+						Console.WriteLine("PopRightNode Step 3");
+						Console.WriteLine("prev =");
+						LogNode(prev);
 #endif
-                    leaveTestSynchronizedBlock();
+						LeaveTestSynchronizedBlock();
 
-                    correctPrev(prev, next);
+						CorrectPrev(prev, next);
 
-                    Thread.MemoryBarrier();
-                    return node;
-                }
+						Thread.MemoryBarrier();
+						return node;
+					}
 
-                spin.SpinOnce();
-            }
-        }
+					spin.SpinOnce();
+				}
+			}
 
-        /// <summary>
-        /// Creates a new empty LockFreeDoublyLinkedList.
-        /// </summary>
-        public LockFreeDoublyLinkedList()
-        {
-            headNode = new node(this);
-            tailNode = new node(this);
-
-            headNode.Prev_ = new nodeLink(null, false);
-            headNode.Next_ = new valueNodeLinkPair
-                (null, new nodeLink(tailNode, false));
-            tailNode.Prev_ = new nodeLink(headNode, false);
-            tailNode.Next_ = new valueNodeLinkPair
-                (null, new nodeLink(null, false));
-            Thread.MemoryBarrier();
-        }
-
-        /// <summary>
-        /// Creates a new LockFreeDoublyLinkedList
-        /// which contains the contents of the enumeration initial.
-        /// </summary>
-        /// <param name="initial">The enumeration to copy.</param>
-        public LockFreeDoublyLinkedList(IEnumerable<T> initial)
-            : this()
-        {
-            if (initial == null)
-                throw new ArgumentNullException("initial");
-            foreach (T value in initial)
-                PushRight(value);
-        }
-
-        /// <summary>
-        /// A node of a LockFreeDoublyLinkedList instance.
-        /// </summary>
-        public interface INode
-        {
-#if DEBUG
-            long Id { get; }
-
-#endif
-            /// <summary>
-            /// The value stored by the current node instance.
-            /// </summary>
-            T Value { get; set; }
-
-            /// <summary>
-            /// Returns the corresponding LockFreeDoublyLinkedList
-            /// of the current node instance.
-            /// </summary>
-            LockFreeDoublyLinkedList<T> List { get; }
-
-            /// <summary>
-            /// The right neighbor node or null,
-            /// if the current node is the dummy tail node.
-            /// </summary>
-            INode Next { get; }
-            /// <summary>
-            /// The left neighbor node or null,
-            /// if the current node is the dummy head node.
-            /// </summary>
-            INode Prev { get; }
-
-            /// <summary>
-            /// Returns, if the current node has been removed.
-            /// </summary>
-            bool Removed { get; }
-
-            /// <summary>
-            /// Returns, if the current node is
-            /// the dummy head or dummy tail node of List.
-            /// </summary>
-            bool IsDummyNode { get; }
-
-            /// <summary>
-            /// Inserts a new node left beside the current node instance.
-            /// </summary>
-            /// <param name="newValue">The initial value of the new node.</param>
-            /// <returns>The new inserted node.</returns>
-            INode InsertBefore(T newValue);
-            /// <summary>
-            /// Inserts a new node right beside the current node instance.
-            /// </summary>
-            /// <param name="newValue">The initial value of the new node.</param>
-            /// <returns>The new inserted node.</returns>
-            INode InsertAfter(T newValue);
-
-            /// <summary>
-            /// Inserts a new node after the current node instance
-            /// if and only if:
-            /// <list type="bullet">
-            ///     <item><description>
-            ///         the current value is no dummy node,
-            ///     </description></item>
-            ///     <item><description>
-            ///         the current node has not yet been deleted
-            ///     </description></item>
-            ///     <item><description>
-            ///         and the <paramref name="condition"/>
-            ///         for the current node’s value is satisfied.
-            ///     </description></item>
-            /// </list>
-            /// </summary>
-            /// <param name="newValue">
-            /// The new value for the node to insert.
-            /// </param>
-            /// <param name="condition">
-            /// The condition which the current node’s value
-            /// needs to satisfy for the insertion to take place.
-            /// </param>
-            /// <returns>
-            /// The inserted node,
-            /// if the insertion could be performed.
-            /// <c>null</c> else.
-            /// </returns>
-            INode InsertAfterIf(T newValue, Func<T, bool> condition);
-
-            /// <summary>
-            /// Removes the current node
-            /// from the corresponding LockFreeDoublyLinkedList instance.
-            /// </summary>
-            /// <returns>
-            /// Whether the current node has been deleted by this thread.
-            /// Also returns false if the current node is a dummy node.
-            /// </returns>
-            bool Remove();
-
-            /// <summary>
-            /// Compares the Value property to comparand
-            /// and replaces the prevalent value with newValue
-            /// if and only if comparand reference equals the prevalent value.
-            /// This happens in a single atomic operation.
-            /// </summary>
-            /// <param name="newValue">The value to write.</param>
-            /// <param name="comparand">The original value </param>
-            /// <returns>
-            /// The prevalent value,
-            /// regardless of whether the replacement took place.
-            /// </returns>
-            T CompareExchangeValue(T newValue, T comparand);
-        }
-
-        private node headNode;
-        private node tailNode;
-
-        private void pushEnd(node node, node next, SpinWait spin)
-        {
-            while (true)
-            {
-
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                nodeLink link1 = next.Prev_;
+			public void SetMark(ref nodeLink<T> link)
+			{
+				Thread.MemoryBarrier();
+				EnterTestSynchronizedBlock();
+				nodeLink<T> node = link;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("pushEnd Step 0");
-                Console.WriteLine("link1 = {0}",
-                    nodeLinkDescription(link1));
+				Console.WriteLine("SetMark Step 0");
+				Console.WriteLine("node = {0}", NodeLinkDescription(node));
 #endif
-                leaveTestSynchronizedBlock();
+				LeaveTestSynchronizedBlock();
 
-                bool b = link1.D;
-                if (!b)
-                {
-                    Thread.MemoryBarrier();
-                    enterTestSynchronizedBlock();
-                    b |= !node.Next_.Link.Equals(new nodeLink(next, false));
+				while (true)
+				{
+					if (node.D)
+						break;
+
+					EnterTestSynchronizedBlock();
+					nodeLink<T> prevalent = Interlocked.CompareExchange(
+						ref link, new nodeLink<T>(node.P, true), node);
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("pushEnd Step 1");
-                    Console.WriteLine("!node.Next_.Link.Equals(new nodeLink(next, false) = {0}",
-                        !node.Next_.Link.Equals(new nodeLink(next, false)));
+					Console.WriteLine("SetMark Step 1");
+					Console.WriteLine("compareExchange(link, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(node.P, true)),
+						NodeLinkDescription(node),
+						NodeLinkDescription(prevalent));
+					Console.WriteLine("link = {0}", NodeLinkDescription(link));
 #endif
-                    leaveTestSynchronizedBlock();
-                }
-                if (b)
-                    break;
+					LeaveTestSynchronizedBlock();
 
-                enterTestSynchronizedBlock();
-                bool b1 = compareExchangeNodeLink(ref next.Prev_,
-                    new nodeLink(node, false), link1);
+					// ReSharper disable once PossibleUnintendedReferenceComparison
+					if (prevalent == node)
+						break;
+					node = prevalent;
+				}
+			}
+
+			public node<T> CorrectPrev(node<T> prev, node<T> node)
+			{
+				// ReSharper disable once IntroduceOptionalParameters.Local
+				return CorrectPrev(prev, node, new SpinWait());
+			}
+
+			public node<T> CorrectPrev(node<T> prev, node<T> node, SpinWait spin)
+			{
+				node<T> lastLink = null;
+				while (true)
+				{
+
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					nodeLink<T> link1 = node.Prev_;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("pushEnd Step 2");
-                Console.WriteLine("compareExchangeNl(next.Prev_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(node, false)),
-                    nodeLinkDescription(link1),
-                    b1);
-                Console.WriteLine("next = ");
-                LogNode(next);
-                LogState();
+					Console.WriteLine("CorrectPrev Step 0");
+					Console.WriteLine("link1 = {0}",
+						NodeLinkDescription(link1));
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b1)
-                {
+					if (link1.D)
+						break;
 
-                    /* Not necessary because of preceding compareExchange. */
-                    // Thread.MemoryBarrier();
-
-                    enterTestSynchronizedBlock();
-                    bool b2 = node.Prev_.D;
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					nodeLink<T> prev2 = prev.Next_.Link;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("pushEnd Step 3");
-                    Console.WriteLine("b1 = {0}", b2);
+					Console.WriteLine("CorrectPrev Step 1");
+					Console.WriteLine("prev2 = {0}",
+						NodeLinkDescription(prev2));
 #endif
-                    leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                    if (b2)
-                        correctPrev(node, next);
-                    break;
-                }
+					if (prev2.D)
+					{
+						if (lastLink != null)
+						{
+							SetMark(ref prev.Prev_);
 
-                spin.SpinOnce();
-            }
-        }
+							EnterTestSynchronizedBlock();
 
-        private void setMark(ref nodeLink link)
-        {
-            Thread.MemoryBarrier();
-            enterTestSynchronizedBlock();
-            nodeLink node = link;
+							// ReSharper disable once UnusedVariable
+							bool b1 = compareExchangeNodeLinkInPair(ref lastLink.Next_,
+								(nodeLink<T>)prev2.P, (nodeLink<T>)prev);
 #if SynchronizedLfdll_Verbose
-            Console.WriteLine("SetMark Step 0");
-            Console.WriteLine("node = {0}", nodeLinkDescription(node));
+							Console.WriteLine("CorrectPrev Step 2");
+							Console.WriteLine(
+								"compareExchangeNlIp(lastLink.Next_, {0}, {1}) = {2}",
+								NodeLinkDescription((nodeLink<T>)prev2.P),
+								NodeLinkDescription((nodeLink<T>)prev),
+								b1);
+							Console.WriteLine("lastLink = ");
+							LogNode(lastLink);
+							LogState();
 #endif
-            leaveTestSynchronizedBlock();
+							LeaveTestSynchronizedBlock();
 
-            while (true)
-            {
-                if (node.D)
-                    break;
+							prev = lastLink;
+							lastLink = null;
+							continue;
+						}
 
-                enterTestSynchronizedBlock();
-                nodeLink prevalent = Interlocked.CompareExchange<nodeLink>(
-                    ref link, new nodeLink(node.P, true), node);
+						Thread.MemoryBarrier();
+						EnterTestSynchronizedBlock();
+						prev2 = prev.Prev_;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("SetMark Step 1");
-                Console.WriteLine("compareExchange(link, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(node.P, true)),
-                    nodeLinkDescription(node),
-                    nodeLinkDescription(prevalent));
-                Console.WriteLine("link = {0}", nodeLinkDescription(link));
+						Console.WriteLine("CorrectPrev Step 3");
+						Console.WriteLine("prev2 = {0}",
+							NodeLinkDescription(prev2));
 #endif
-                leaveTestSynchronizedBlock();
+						LeaveTestSynchronizedBlock();
 
-                // ReSharper disable once PossibleUnintendedReferenceComparison
-                if (prevalent == node)
-                    break;
-                node = prevalent;
-            }
-        }
-
-        private node correctPrev(node prev, node node)
-        {
-            // ReSharper disable once IntroduceOptionalParameters.Local
-            return correctPrev(prev, node, new SpinWait());
-        }
-
-        private node correctPrev(node prev, node node, SpinWait spin)
-        {
-            node lastLink = null;
-            while (true)
-            {
-
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                nodeLink link1 = node.Prev_;
-#if SynchronizedLfdll_Verbose
-                Console.WriteLine("CorrectPrev Step 0");
-                Console.WriteLine("link1 = {0}",
-                    nodeLinkDescription(link1));
-#endif
-                leaveTestSynchronizedBlock();
-
-                if (link1.D)
-                    break;
-
-                Thread.MemoryBarrier();
-                enterTestSynchronizedBlock();
-                nodeLink prev2 = prev.Next_.Link;
-#if SynchronizedLfdll_Verbose
-                Console.WriteLine("CorrectPrev Step 1");
-                Console.WriteLine("prev2 = {0}",
-                    nodeLinkDescription(prev2));
-#endif
-                leaveTestSynchronizedBlock();
-
-                if (prev2.D)
-                {
-                    if (lastLink != null)
-                    {
-                        setMark(ref prev.Prev_);
-
-                        enterTestSynchronizedBlock();
-                        // ReSharper disable once UnusedVariable
-                        bool b1 = compareExchangeNodeLinkInPair(ref lastLink.Next_,
-                            (nodeLink)prev2.P, (nodeLink)prev);
-#if SynchronizedLfdll_Verbose
-                        Console.WriteLine("CorrectPrev Step 2");
-                        Console.WriteLine("compareExchangeNlIp(lastLink.Next_, {0}, {1}) = {2}",
-                            nodeLinkDescription((nodeLink)prev2.P),
-                            nodeLinkDescription((nodeLink)prev),
-                            b1);
-                        Console.WriteLine("lastLink = ");
-                        LogNode(lastLink);
-                        LogState();
-#endif
-                        leaveTestSynchronizedBlock();
-
-                        prev = lastLink;
-                        lastLink = null;
-                        continue;
-                    }
-
-                    Thread.MemoryBarrier();
-                    enterTestSynchronizedBlock();
-                    prev2 = prev.Prev_;
-#if SynchronizedLfdll_Verbose
-                    Console.WriteLine("CorrectPrev Step 3");
-                    Console.WriteLine("prev2 = {0}",
-                        nodeLinkDescription(prev2));
-#endif
-                    leaveTestSynchronizedBlock();
-
-                    /* A conversion would probably sometimes
+						/* A conversion would probably sometimes
                      * lead to errors. */
-                    prev = prev2.P;
-                    continue;
-                }
-                /* The paper simply states „Prev_ != node“,
+						prev = prev2.P;
+						continue;
+					}
+					/* The paper simply states „Prev_ != node“,
                  * but the types are different.
                  * It is probably assumed
                  * that the comaparison is performed as follows:
                  * !(prev2.P == node && !prev2.D).
                  * Since prev2.D is always false here,
                  * simplification is possible. **/
-                if (prev2.P != node)
-                {
-                    lastLink = prev;
-                    prev = prev2.P;
-                    continue;
-                }
+					if (prev2.P != node)
+					{
+						lastLink = prev;
+						prev = prev2.P;
+						continue;
+					}
 
-                enterTestSynchronizedBlock();
-                bool b = compareExchangeNodeLink(ref node.Prev_,
-                    new nodeLink(prev, false), link1);
+					EnterTestSynchronizedBlock();
+					bool b = compareExchangeNodeLink(ref node.Prev_,
+						new nodeLink<T>(prev, false), link1);
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("CorrectPrev Step 4");
-                Console.WriteLine("compareExchangeNl(node.Prev_, {0}, {1}) = {2}",
-                    nodeLinkDescription(new nodeLink(prev, false)),
-                    nodeLinkDescription(link1),
-                    b);
-                Console.WriteLine("node = ");
-                LogNode(node);
-                LogState();
+					Console.WriteLine("CorrectPrev Step 4");
+					Console.WriteLine("compareExchangeNl(node.Prev_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(prev, false)),
+						NodeLinkDescription(link1),
+						b);
+					Console.WriteLine("node = ");
+					LogNode(node);
+					LogState();
 #endif
-                leaveTestSynchronizedBlock();
+					LeaveTestSynchronizedBlock();
 
-                if (b)
-                {
-                    /* Not necessary because of preceding compareExchange. */
-                    // Thread.MemoryBarrier();
+					if (b)
+					{
+						/* Not necessary because of preceding compareExchange. */
+						// Thread.MemoryBarrier();
 
-                    enterTestSynchronizedBlock();
-                    bool b1 = prev.Prev_.D;
+						EnterTestSynchronizedBlock();
+						bool b1 = prev.Prev_.D;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("CorrectPrev Step 5");
-                    Console.WriteLine("b1 = {0}", b1);
+						Console.WriteLine("CorrectPrev Step 5");
+						Console.WriteLine("b1 = {0}", b1);
 #endif
-                    leaveTestSynchronizedBlock();
+						LeaveTestSynchronizedBlock();
 
-                    if (b1)
-                        continue;
-                    break;
-                }
+						if (b1)
+							continue;
+						break;
+					}
 
-                spin.SpinOnce();
-            }
-            return prev;
-        }
+					spin.SpinOnce();
+				}
+				return prev;
+			}
 
-        private void enterTestSynchronizedBlock()
-        {
+			public void EnterTestSynchronizedBlock()
+			{
 #if SynchronizedLfdll
-            if (NextStepWaitHandle.IsValueCreated)
-            {
-                NextStepWaitHandle.Value.WaitOne();
+				if (NextStepWaitHandle.IsValueCreated)
+				{
+					NextStepWaitHandle.Value.WaitOne();
 
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("({0}) Step {1}",
-                    Thread.CurrentThread.Name, StepCounter.Count());
+					Console.WriteLine("({0}) Step {1}",
+						Thread.CurrentThread.Name, StepCounter.Count());
 #endif
-            }
+				}
 #endif
-        }
+			}
 
-        private void leaveTestSynchronizedBlock()
-        {
+			public void LeaveTestSynchronizedBlock()
+			{
 #if SynchronizedLfdll
-            if (NextStepWaitHandle.IsValueCreated)
-                StepCompletedWaitHandle.Set();
+				if (NextStepWaitHandle.IsValueCreated)
+					StepCompletedWaitHandle.Set();
 #endif
-        }
+			}
 
-        private static bool compareExchangeNodeLink(ref nodeLink location,
-            nodeLink value, nodeLink comparandByValue)
-        {
-            return ThreadingAdditions
-                .ConditionalCompareExchange<nodeLink>(ref location,
-                value, original => original.Equals(comparandByValue));
-        }
+			/// <summary>
+			/// Creates a new empty lockFreeDoublyLinkedList.
+			/// </summary>
+			public lockFreeDoublyLinkedList()
+			{
+				HeadNode = new node<T>(this);
+				TailNode = new node<T>(this);
 
-        private static bool compareExchangeNodeLinkInPair(
-            ref valueNodeLinkPair location, nodeLink newLink,
-            nodeLink comparadByValue)
-        {
-            Thread.MemoryBarrier();
-            T currentValue = location.Value;
-            return ThreadingAdditions
-                .ConditionalCompareExchange<valueNodeLinkPair>(ref location,
-                    new valueNodeLinkPair(currentValue, newLink),
-                    original =>
-                        original.Link.Equals(comparadByValue)
-                        && ReferenceEquals(original.Value, currentValue));
-        }
+				HeadNode.Prev_ = new nodeLink<T>(null, false);
+				HeadNode.Next_ = new valueNodeLinkPair<T>(null, new nodeLink<T>(TailNode, false));
+				TailNode.Prev_ = new nodeLink<T>(HeadNode, false);
+				TailNode.Next_ = new valueNodeLinkPair<T>(null, new nodeLink<T>(null, false));
+				Thread.MemoryBarrier();
+			}
+
+			/// <summary>
+			/// Creates a new lockFreeDoublyLinkedList
+			/// which contains the contents of the enumeration initial.
+			/// </summary>
+			/// <param name="initial">The enumeration to copy.</param>
+			public lockFreeDoublyLinkedList(IEnumerable<T> initial)
+				: this()
+			{
+				if (initial == null)
+					throw new ArgumentNullException(nameof(initial));
+				foreach (T value in initial)
+					PushRight(value);
+			}
+
+			#region private
+			IEnumerator IEnumerable.GetEnumerator()
+			{
+				return GetEnumerator();
+			}
+
+			private void pushEnd(node<T> node, node<T> next, SpinWait spin)
+			{
+				while (true)
+				{
+					Thread.MemoryBarrier();
+					EnterTestSynchronizedBlock();
+					nodeLink<T> link1 = next.Prev_;
+#if SynchronizedLfdll_Verbose
+					Console.WriteLine("pushEnd Step 0");
+					Console.WriteLine("link1 = {0}",
+						NodeLinkDescription(link1));
+#endif
+					LeaveTestSynchronizedBlock();
+
+					bool b = link1.D;
+					if (!b)
+					{
+						Thread.MemoryBarrier();
+						EnterTestSynchronizedBlock();
+						b |= !node.Next_.Link.Equals(new nodeLink<T>(next, false));
+#if SynchronizedLfdll_Verbose
+						Console.WriteLine("pushEnd Step 1");
+						Console.WriteLine(
+							"!node.Next_.Link.Equals(new nodeLink<T>(next, false) = {0}",
+							!node.Next_.Link.Equals(new nodeLink<T>(next, false)));
+#endif
+						LeaveTestSynchronizedBlock();
+					}
+					if (b)
+						break;
+
+					EnterTestSynchronizedBlock();
+					bool b1 = compareExchangeNodeLink(ref next.Prev_,
+						new nodeLink<T>(node, false), link1);
+#if SynchronizedLfdll_Verbose
+					Console.WriteLine("pushEnd Step 2");
+					Console.WriteLine("compareExchangeNl(next.Prev_, {0}, {1}) = {2}",
+						NodeLinkDescription(new nodeLink<T>(node, false)),
+						NodeLinkDescription(link1),
+						b1);
+					Console.WriteLine("next = ");
+					LogNode(next);
+					LogState();
+#endif
+					LeaveTestSynchronizedBlock();
+
+					if (b1)
+					{
+
+						/* Not necessary because of preceding compareExchange. */
+						// Thread.MemoryBarrier();
+
+						EnterTestSynchronizedBlock();
+						bool b2 = node.Prev_.D;
+#if SynchronizedLfdll_Verbose
+						Console.WriteLine("pushEnd Step 3");
+						Console.WriteLine("b1 = {0}", b2);
+#endif
+						LeaveTestSynchronizedBlock();
+
+						if (b2)
+							CorrectPrev(node, next);
+						break;
+					}
+
+					spin.SpinOnce();
+				}
+			}
+			#endregion
+
 #if SynchronizedLfdll
-        public ThreadLocal<AutoResetEvent> NextStepWaitHandle
-        {
-            get { return nextStepWaitHandle; }
-        }
+			public ThreadLocal<AutoResetEvent> NextStepWaitHandle { get; }
+				= new ThreadLocal<AutoResetEvent>();
 
-        public AutoResetEvent StepCompletedWaitHandle
-        {
-            get { return stepCompletedWaitHandle; }
-        }
+			public AutoResetEvent StepCompletedWaitHandle { get; }
+				= new AutoResetEvent(false);
 
-        public Counter StepCounter { get { return counter; } }
+			public Counter StepCounter { get; } = new Counter();
 
 #if SynchronizedLfdll_Verbose
-        public void LogState()
-        {
-            node current = headNode;
-            while (current != null)
-            {
-                LogNode(current);
-                current = current.Next_.Link.P;
-            }
-        }
+			public void LogState()
+			{
+				node<T> current = HeadNode;
+				while (current != null)
+				{
+					LogNode(current);
+					current = current.Next_.Link.P;
+				}
+			}
 
-        public void LogNode(LockFreeDoublyLinkedList<T>.INode inode)
-        {
-            node node = (node)inode;
-            Console.WriteLine(nodeName(node));
-            if (node != null)
-            {
-                Console.WriteLine("    .Prev_ = "
-                    + nodeLinkDescription(node.Prev_));
-                Console.WriteLine("    .Next_ = "
-                    + valueNodeLinkPairDescription(node.Next_));
-            }
-        }
+			public void LogNode(ILockFreeDoublyLinkedListNode<T> inode)
+			{
+				node<T> node = (node<T>)inode;
+				Console.WriteLine(nodeName(node));
+				if (node != null)
+				{
+					Console.WriteLine("    .Prev_ = "
+						+ NodeLinkDescription(node.Prev_));
+					Console.WriteLine("    .Next_ = "
+						+ ValueNodeLinkPairDescription(node.Next_));
+				}
+			}
 #endif
 
-        private readonly AutoResetEvent stepCompletedWaitHandle
-            = new AutoResetEvent(false);
-        private ThreadLocal<AutoResetEvent> nextStepWaitHandle =
-            new ThreadLocal<AutoResetEvent>();
-        private readonly Counter counter = new Counter();
-
 #if SynchronizedLfdll_Verbose
-        private string nodeName(node node)
-        {
-            if (node == null)
-                return "null";
-            if (node == headNode)
-                return "HeadNode";
-            if (node == tailNode)
-                return "TailNode";
-            return "Node " + node.Value;
-        }
-        private string nodeLinkDescription(nodeLink link)
-        {
-            return "(" + nodeName(link.P)
-                + ", " + link.D + ")";
-        }
+			private string nodeName(node<T> node)
+			{
+				if (node == null)
+					return "null";
+				if (node == HeadNode)
+					return "HeadNode";
+				if (node == TailNode)
+					return "TailNode";
+				return "Node " + node.Value;
+			}
 
-        private string valueNodeLinkPairDescription
-            (valueNodeLinkPair pair)
-        {
-            return "(" + pair.Value + ", "
-                   + nodeLinkDescription(pair.Link) + ")";
-        }
+			public string NodeLinkDescription(nodeLink<T> link)
+			{
+				return "(" + nodeName(link.P)
+					+ ", " + link.D + ")";
+			}
 
-        private void logNodeLink(nodeLink link)
-        {
-            Console.WriteLine(nodeLinkDescription(link));
-        }
+			public string ValueNodeLinkPairDescription
+				(valueNodeLinkPair<T> pair)
+			{
+				return "(" + pair.Value + ", "
+					+ NodeLinkDescription(pair.Link) + ")";
+			}
 
-        private void logValueNodeLinkPair(valueNodeLinkPair pair)
-        {
-            Console.WriteLine(valueNodeLinkPairDescription(pair));
-        }
+			// ReSharper disable once UnusedMember.Local
+			private void logNodeLink(nodeLink<T> link)
+			{
+				Console.WriteLine(NodeLinkDescription(link));
+			}
+
+			public void LogValueNodeLinkPair(valueNodeLinkPair<T> pair)
+			{
+				Console.WriteLine(ValueNodeLinkPairDescription(pair));
+			}
 #endif
 #endif // SynchronizedLfdll
+		}
 
-        private class node : INode
-        {
-            // ReSharper disable once InconsistentNaming
-            public valueNodeLinkPair Next_;
-            // ReSharper disable once InconsistentNaming
-            public nodeLink Prev_;
-            // ReSharper disable once InconsistentNaming
-            public readonly LockFreeDoublyLinkedList<T> List_;
+		private class node<T> : ILockFreeDoublyLinkedListNode<T> where T : class
+		{
+			// ReSharper disable once InconsistentNaming
+			public valueNodeLinkPair<T> Next_;
+
+			// ReSharper disable once InconsistentNaming
+			public nodeLink<T> Prev_;
+
+			// ReSharper disable once InconsistentNaming
+			public readonly lockFreeDoublyLinkedList<T> List_;
 
 #if DEBUG
-            public long Id { get; private set; }
+			public long Id { get; }
 
 #endif
 
-            public LockFreeDoublyLinkedList<T> List
-            {
-                get { return List_; }
-            }
+			public ILockFreeDoublyLinkedList<T> List => List_;
 
-            public bool IsDummyNode
-            {
-                get { return this == List_.headNode || this == List_.tailNode; }
-            }
+			public bool IsDummyNode =>
+				this == List_.HeadNode || this == List_.TailNode;
 
-            public T Value
-            {
-                get
-                {
-                    if (IsDummyNode)
-                        throwIsDummyNodeException();
-                    /* At the commented out code it is assumed
+			public T Value
+			{
+				get
+				{
+					if (IsDummyNode)
+						throwIsDummyNodeException();
+					/* At the commented out code it is assumed
                      * that Value_ is not allowed to be readout
                      * once the node was deleted.
                      * However, this behaviour does not seem useful. */
-                    //T val = this.newValue;
-                    //if (this.Next_.D)
-                    //    return default(T);
+					//T val = this.newValue;
+					//if (this.Next_.D)
+					//    return default(T);
 
-                    Thread.MemoryBarrier();
-                    T value = this.Next_.Value;
-                    Thread.MemoryBarrier();
-                    return value;
-                }
-                set
-                {
-                    if (IsDummyNode)
-                        throwIsDummyNodeException();
-                    Thread.MemoryBarrier();
-                    while (true)
-                    {
-                        valueNodeLinkPair currentPair = this.Next_;
-                        if (Interlocked.CompareExchange<valueNodeLinkPair>(
-                            ref this.Next_,
-                            new valueNodeLinkPair(value, currentPair.Link),
-                            currentPair) == currentPair)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
+					Thread.MemoryBarrier();
+					T value = Next_.Value;
+					Thread.MemoryBarrier();
+					return value;
+				}
+				set
+				{
+					if (IsDummyNode)
+						throwIsDummyNodeException();
+					Thread.MemoryBarrier();
+					while (true)
+					{
+						valueNodeLinkPair<T> currentPair = Next_;
+						if (Interlocked.CompareExchange(
+							ref Next_,
+							new valueNodeLinkPair<T>(value, currentPair.Link),
+							currentPair) == currentPair)
+						{
+							break;
+						}
+					}
+				}
+			}
 
-            public INode Next
-            {
-                get
-                {
-                    node cursor = this;
-                    bool b = toNext(ref cursor);
-                    Thread.MemoryBarrier();
-                    if (b)
-                        return cursor;
-                    return null;
-                }
-            }
-            public INode Prev
-            {
-                get
-                {
-                    node cursor = this;
-                    bool b = toPrev(ref cursor);
-                    Thread.MemoryBarrier();
-                    if (b)
-                        return cursor;
-                    return null;
-                }
-            }
+			public ILockFreeDoublyLinkedListNode<T> Next
+			{
+				get
+				{
+					node<T> cursor = this;
+					bool b = toNext(ref cursor);
+					Thread.MemoryBarrier();
+					if (b)
+						return cursor;
+					return null;
+				}
+			}
 
-            public bool Removed
-            {
-                get
-                {
-                    Thread.MemoryBarrier();
-                    bool result = this.Next_.Link.D;
-                    Thread.MemoryBarrier();
-                    return result;
-                }
-            }
+			public ILockFreeDoublyLinkedListNode<T> Prev
+			{
+				get
+				{
+					node<T> cursor = this;
+					bool b = toPrev(ref cursor);
+					Thread.MemoryBarrier();
+					if (b)
+						return cursor;
+					return null;
+				}
+			}
 
-            public INode InsertBefore(T newValue)
-            {
-                INode result = insertBefore(newValue, this);
-                Thread.MemoryBarrier();
-                return result;
-            }
-            public INode InsertAfter(T newValue)
-            {
-                INode result = insertAfter(newValue, this);
-                Thread.MemoryBarrier();
-                return result;
-            }
+			public bool Removed
+			{
+				get
+				{
+					Thread.MemoryBarrier();
+					bool result = Next_.Link.D;
+					Thread.MemoryBarrier();
+					return result;
+				}
+			}
 
-            public INode InsertAfterIf(T newValue, Func<T, bool> condition)
-            {
-                if (IsDummyNode)
-                    return null;
+			public ILockFreeDoublyLinkedListNode<T> InsertBefore(T newValue)
+			{
+				ILockFreeDoublyLinkedListNode<T> result = insertBefore(newValue, this);
+				Thread.MemoryBarrier();
+				return result;
+			}
 
-                SpinWait spin = new SpinWait();
-                node cursor = this;
-                node node = new node(List_);
-                node prev = cursor;
-                valueNodeLinkPair nextLink;
-                node next;
-                while (true)
-                {
+			public ILockFreeDoublyLinkedListNode<T> InsertAfter(T newValue)
+			{
+				ILockFreeDoublyLinkedListNode<T> result = insertAfter(newValue, this);
+				Thread.MemoryBarrier();
+				return result;
+			}
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    nextLink = prev.Next_;
+			public ILockFreeDoublyLinkedListNode<T> InsertAfterIf(T newValue, Func<T, bool> condition)
+			{
+				if (IsDummyNode)
+					return null;
+
+				SpinWait spin = new SpinWait();
+				node<T> cursor = this;
+				node<T> node = new node<T>(List_);
+				node<T> prev = cursor;
+				node<T> next;
+				while (true)
+				{
+
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					valueNodeLinkPair<T> nextLink = prev.Next_;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("insertAfterIf Step 0");
-                    Console.WriteLine("nextLink =");
-                    List_.logValueNodeLinkPair(nextLink);
+					Console.WriteLine("insertAfterIf Step 0");
+					Console.WriteLine("nextLink =");
+					List_.LogValueNodeLinkPair(nextLink);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    next = nextLink.Link.P;
-                    node.Prev_ = new nodeLink(prev, false);
-                    node.Next_ = new valueNodeLinkPair(newValue,
-                        new nodeLink(next, false));
+					next = nextLink.Link.P;
+					node.Prev_ = new nodeLink<T>(prev, false);
+					node.Next_ = new valueNodeLinkPair<T>(newValue,
+						new nodeLink<T>(next, false));
 
-                    bool cexSuccess;
-                    valueNodeLinkPair currentPair = nextLink;
-                    while (true)
-                    {
-                        if (!condition(currentPair.Value))
-                        {
-                            Thread.MemoryBarrier();
-                            return null;
-                        }
-                        if (!currentPair.Link.Equals(
-                            new nodeLink(next, false)))
-                        {
-                            cexSuccess = false;
-                            break;
-                        }
+					bool cexSuccess;
+					valueNodeLinkPair<T> currentPair = nextLink;
+					while (true)
+					{
+						if (!condition(currentPair.Value))
+						{
+							Thread.MemoryBarrier();
+							return null;
+						}
+						if (!currentPair.Link.Equals(
+							new nodeLink<T>(next, false)))
+						{
+							cexSuccess = false;
+							break;
+						}
 
-                        List_.enterTestSynchronizedBlock();
-                        valueNodeLinkPair prevalent
-                            = Interlocked.CompareExchange
-                            (ref cursor.Next_,
-                            new valueNodeLinkPair
-                                (currentPair.Value,
-                                    new nodeLink(node, false)),
-                            currentPair);
+						List_.EnterTestSynchronizedBlock();
+						valueNodeLinkPair<T> prevalent
+							= Interlocked.CompareExchange
+							(ref cursor.Next_,
+							new valueNodeLinkPair<T>(currentPair.Value,
+									new nodeLink<T>(node, false)),
+							currentPair);
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("InsertAfterIf Step 1");
-                        Console.WriteLine(
-                            "CompareExchange(ref cursor.Next_, {0}, {1}) = {2}",
-                            new valueNodeLinkPair
-                                (currentPair.Value,
-                                    new nodeLink(node, false)),
-                            currentPair,
-                            prevalent);
-                        Console.WriteLine("cursor =");
-                        List_.LogNode(cursor);
+						Console.WriteLine("InsertAfterIf Step 1");
+						Console.WriteLine(
+							"CompareExchange(ref cursor.Next_, {0}, {1}) = {2}",
+							new valueNodeLinkPair<T>(currentPair.Value,
+									new nodeLink<T>(node, false)),
+							currentPair,
+							prevalent);
+						Console.WriteLine("cursor =");
+						List_.LogNode(cursor);
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                        if (ReferenceEquals(prevalent, currentPair))
-                        {
-                            cexSuccess = true;
-                            break;
-                        }
-                        currentPair = prevalent;
-                    }
+						if (ReferenceEquals(prevalent, currentPair))
+						{
+							cexSuccess = true;
+							break;
+						}
+						currentPair = prevalent;
+					}
 
-                    if (cexSuccess)
-                        break;
+					if (cexSuccess)
+						break;
 
-                    if (currentPair.Link.D)
-                    {
-                        Thread.MemoryBarrier();
-                        return null;
-                    }
-                    spin.SpinOnce();
-                }
-                List_.correctPrev(prev, next);
-                Thread.MemoryBarrier();
-                return node;
-            }
+					if (currentPair.Link.D)
+					{
+						Thread.MemoryBarrier();
+						return null;
+					}
+					spin.SpinOnce();
+				}
+				List_.CorrectPrev(prev, next);
+				Thread.MemoryBarrier();
+				return node;
+			}
 
 
-            public bool Remove() // out T lastValue
-            {
-                if (IsDummyNode)
-                {
-                    // lastValue = default(T);
-                    return false;
-                }
-                while (true)
-                {
+			public bool Remove() // out T lastValue
+			{
+				if (IsDummyNode)
+				{
+					// lastValue = default(T);
+					return false;
+				}
+				while (true)
+				{
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    nodeLink next = this.Next_.Link;
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					nodeLink<T> next = Next_.Link;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("Remove Step 0");
-                    Console.WriteLine("next = {0}", List_.nodeLinkDescription(next));
+					Console.WriteLine("Remove Step 0");
+					Console.WriteLine("next = {0}", List_.NodeLinkDescription(next));
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (next.D)
-                    {
-                        // lastValue = default(T);
-                        Thread.MemoryBarrier();
-                        return false;
-                    }
+					if (next.D)
+					{
+						// lastValue = default(T);
+						Thread.MemoryBarrier();
+						return false;
+					}
 
-                    List_.enterTestSynchronizedBlock();
-                    bool b = compareExchangeNodeLinkInPair(ref this.Next_,
-                        new nodeLink(next.P, true), next);
+					List_.EnterTestSynchronizedBlock();
+					bool b = compareExchangeNodeLinkInPair(ref Next_,
+						new nodeLink<T>(next.P, true), next);
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("Remove Step 1");
-                    Console.WriteLine("compareExchangeNl(ref this.Next_, {0}, {1}) = {2}",
-                        List_.nodeLinkDescription(new nodeLink(next.P, true)),
-                        List_.nodeLinkDescription(next),
-                        b);
-                    Console.WriteLine("this =");
-                    List_.LogNode(this);
-                    List_.LogState();
+					Console.WriteLine("Remove Step 1");
+					Console.WriteLine("compareExchangeNl(ref this.Next_, {0}, {1}) = {2}",
+						List_.NodeLinkDescription(new nodeLink<T>(next.P, true)),
+						List_.NodeLinkDescription(next),
+						b);
+					Console.WriteLine("this =");
+					List_.LogNode(this);
+					List_.LogState();
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (b)
-                    {
-                        nodeLink prev;
-                        while (true)
-                        {
+					if (b)
+					{
+						nodeLink<T> prev;
+						while (true)
+						{
 
-                            /* Not necessary because of preceding compareExchange. */
-                            // Thread.MemoryBarrier();
+							/* Not necessary because of preceding compareExchange. */
+							// Thread.MemoryBarrier();
 
-                            List_.enterTestSynchronizedBlock();
-                            prev = this.Prev_;
+							List_.EnterTestSynchronizedBlock();
+							prev = Prev_;
 #if SynchronizedLfdll_Verbose
-                            Console.WriteLine("Remove Step 2");
-                            Console.WriteLine("prev = {0}", List_.nodeLinkDescription(this.Prev_));
+							Console.WriteLine("Remove Step 2");
+							Console.WriteLine("prev = {0}", List_.NodeLinkDescription(Prev_));
 #endif
-                            List_.leaveTestSynchronizedBlock();
+							List_.LeaveTestSynchronizedBlock();
 
-                            if (prev.D)
-                                break;
+							if (prev.D)
+								break;
 
-                            List_.enterTestSynchronizedBlock();
-                            bool b1 = compareExchangeNodeLink(ref this.Prev_,
-                                new nodeLink(prev.P, true), prev);
+							List_.EnterTestSynchronizedBlock();
+							bool b1 = compareExchangeNodeLink(ref Prev_,
+								new nodeLink<T>(prev.P, true), prev);
 #if SynchronizedLfdll_Verbose
-                            Console.WriteLine("Remove Step 3");
-                            Console.WriteLine("compareExchangeNl(ref this.Prev_, {0}, {1}) = {2}",
-                                List_.nodeLinkDescription(new nodeLink(prev.P, true)),
-                                List_.nodeLinkDescription(prev),
-                                b1);
-                            Console.WriteLine("this =");
-                            List_.LogNode(this);
-                            List_.LogState();
+							Console.WriteLine("Remove Step 3");
+							Console.WriteLine("compareExchangeNl(ref this.Prev_, {0}, {1}) = {2}",
+								List_.NodeLinkDescription(new nodeLink<T>(prev.P, true)),
+								List_.NodeLinkDescription(prev),
+								b1);
+							Console.WriteLine("this =");
+							List_.LogNode(this);
+							List_.LogState();
 #endif
-                            List_.leaveTestSynchronizedBlock();
+							List_.LeaveTestSynchronizedBlock();
 
-                            if (b1)
-                                break;
-                        }
-                        List_.correctPrev(prev.P, next.P);
-                        //lastValue = this.newValue;
-                        Thread.MemoryBarrier();
-                        return true;
-                    }
-                }
-            }
+							if (b1)
+								break;
+						}
+						List_.CorrectPrev(prev.P, next.P);
+						//lastValue = this.newValue;
+						Thread.MemoryBarrier();
+						return true;
+					}
+				}
+			}
 
-            public node(LockFreeDoublyLinkedList<T> list)
-            {
-                this.List_ = list;
+			public T CompareExchangeValue(T newValue, T comparand)
+			{
+				valueNodeLinkPair<T> currentPair;
+				Thread.MemoryBarrier();
+				while (true)
+				{
+					currentPair = Next_;
+					if (!ReferenceEquals(currentPair.Value, comparand))
+						return currentPair.Value;
+					if (ReferenceEquals(
+							Interlocked.CompareExchange(
+								ref Next_,
+								new valueNodeLinkPair<T>(
+									newValue, currentPair.Link),
+								currentPair),
+							currentPair))
+					{
+						break;
+					}
+				}
+				return currentPair.Value;
+			}
+
+			public node(lockFreeDoublyLinkedList<T> list)
+			{
+				List_ = list;
 #if DEBUG
 
-                Id = Interlocked.Increment(ref nextId) - 1;
+				Id = Interlocked.Increment(ref nextId) - 1;
 #endif
-                /* Value_ is flushed
+				/* Value_ is flushed
                  * at the moment the current node instance is published
                  * (by CompareExchange). */
-            }
+			}
 
+			#region private
 #if DEBUG
-            // ReSharper disable once StaticFieldInGenericType
-            private static long nextId = 0;
+
+			// ReSharper disable once StaticFieldInGenericType
+			private static long nextId = 0;
 
 #endif
 
-            private void throwIsDummyNodeException()
-            {
-                throw new InvalidOperationException(
-                    "The current node is the dummy head or dummy tail node " +
-                    "of the current List, so it may not store any value.");
-            }
+			private void throwIsDummyNodeException()
+			{
+				throw new InvalidOperationException(
+					"The current node is the dummy head or dummy tail node " +
+					"of the current List, so it may not store any value.");
+			}
 
-            private bool toNext(ref node cursor)
-            {
-                while (true)
-                {
-                    if (cursor == List_.tailNode)
-                        return false;
+			private bool toNext(ref node<T> cursor)
+			{
+				while (true)
+				{
+					if (cursor == List_.TailNode)
+						return false;
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    node next = cursor.Next_.Link.P;
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					node<T> next = cursor.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("toNext Step 0");
-                    Console.WriteLine("next =");
-                    List_.LogNode(next);
+					Console.WriteLine("toNext Step 0");
+					Console.WriteLine("next =");
+					List_.LogNode(next);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    bool d = next.Next_.Link.D;
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					bool d = next.Next_.Link.D;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("toNext Step 1");
-                    Console.WriteLine("d = {0}", d);
+					Console.WriteLine("toNext Step 1");
+					Console.WriteLine("d = {0}", d);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    bool b = d;
-                    if (b)
-                    {
+					bool b = d;
+					if (b)
+					{
 
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        b &= !cursor.Next_.Link.Equals(new nodeLink(next, true));
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						b &= !cursor.Next_.Link.Equals(new nodeLink<T>(next, true));
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("toNext Step 2");
-                        Console.WriteLine("!cursor.Next_.Link.Equals(new nodeLink(next, true)) = {0}",
-                            !cursor.Next_.Link.Equals(new nodeLink(next, true)));
+						Console.WriteLine("toNext Step 2");
+						Console.WriteLine("!cursor.Next_.Link.Equals(new nodeLink<T>(next, true)) = {0}",
+							!cursor.Next_.Link.Equals(new nodeLink<T>(next, true)));
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                    }
-                    if (b)
-                    {
-                        List_.setMark(ref next.Prev_);
+					}
+					if (b)
+					{
+						List_.SetMark(ref next.Prev_);
 
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        node p = next.Next_.Link.P;
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						node<T> p = next.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("toNext Step 3");
-                        Console.WriteLine("p =");
-                        List_.LogNode(p);
+						Console.WriteLine("toNext Step 3");
+						Console.WriteLine("p =");
+						List_.LogNode(p);
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                        List_.enterTestSynchronizedBlock();
-                        // ReSharper disable once UnusedVariable
-                        bool b1 = compareExchangeNodeLinkInPair(ref cursor.Next_,
-                            (nodeLink)p, (nodeLink)next);
+						List_.EnterTestSynchronizedBlock();
+						// ReSharper disable once UnusedVariable
+						bool b1 = compareExchangeNodeLinkInPair(ref cursor.Next_,
+							(nodeLink<T>)p, (nodeLink<T>)next);
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("Remove Step 4");
-                        Console.WriteLine("compareExchangeNlIp(ref cursor.Next_, {0}, {1}) = {2}",
-                            List_.nodeLinkDescription((nodeLink)p),
-                            List_.nodeLinkDescription((nodeLink)next),
-                            b1);
-                        Console.WriteLine("cursor =");
-                        List_.LogNode(cursor);
-                        List_.LogState();
+						Console.WriteLine("Remove Step 4");
+						Console.WriteLine("compareExchangeNlIp(ref cursor.Next_, {0}, {1}) = {2}",
+							List_.NodeLinkDescription((nodeLink<T>)p),
+							List_.NodeLinkDescription((nodeLink<T>)next),
+							b1);
+						Console.WriteLine("cursor =");
+						List_.LogNode(cursor);
+						List_.LogState();
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                        continue;
-                    }
-                    cursor = next;
-                    if (!d)
-                        return true;
-                }
-            }
-            private bool toPrev(ref node cursor)
-            {
-                while (true)
-                {
-                    if (cursor == List_.headNode)
-                        return false;
+						continue;
+					}
+					cursor = next;
+					if (!d)
+						return true;
+				}
+			}
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    node prev = cursor.Prev_.P;
+			private bool toPrev(ref node<T> cursor)
+			{
+				while (true)
+				{
+					if (cursor == List_.HeadNode)
+						return false;
+
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					node<T> prev = cursor.Prev_.P;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("toPrev Step 0");
-                    Console.WriteLine("prev =");
-                    List_.LogNode(prev);
+					Console.WriteLine("toPrev Step 0");
+					Console.WriteLine("prev =");
+					List_.LogNode(prev);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    bool b = prev.Next_.Link.Equals(new nodeLink(cursor, false));
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					bool b = prev.Next_.Link.Equals(new nodeLink<T>(cursor, false));
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("toPrev Step 1");
-                    Console.WriteLine("b = {0}", b);
+					Console.WriteLine("toPrev Step 1");
+					Console.WriteLine("b = {0}", b);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (b)
-                    {
+					if (b)
+					{
 
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        b &= !cursor.Next_.Link.D;
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						b &= !cursor.Next_.Link.D;
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("toPrev Step 2");
-                        Console.WriteLine("!cursor.Next_.Link.D = {0}", !cursor.Next_.Link.D);
+						Console.WriteLine("toPrev Step 2");
+						Console.WriteLine("!cursor.Next_.Link.D = {0}", !cursor.Next_.Link.D);
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                    }
-                    if (b)
-                    {
-                        cursor = prev;
-                        return true;
-                    }
-                    else
-                    {
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        bool b1 = cursor.Next_.Link.D;
+					}
+					if (b)
+					{
+						cursor = prev;
+						return true;
+					}
+					else
+					{
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						bool b1 = cursor.Next_.Link.D;
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("toPrev Step 3");
-                        Console.WriteLine("b1 = {0}", b1);
+						Console.WriteLine("toPrev Step 3");
+						Console.WriteLine("b1 = {0}", b1);
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                        if (b1)
-                            toNext(ref cursor);
-                        else
-                            List_.correctPrev(prev, cursor);
-                    }
-                }
-            }
+						if (b1)
+							toNext(ref cursor);
+						else
+							List_.CorrectPrev(prev, cursor);
+					}
+				}
+			}
 
-            private INode insertBefore(T value, node cursor)
-            {
-                return insertBefore(value, cursor, new SpinWait());
-            }
-            private INode insertBefore(T value, node cursor, SpinWait spin)
-            {
-                if (cursor == List_.headNode)
-                    return InsertAfter(value);
-                node node = new node(List_);
+			private ILockFreeDoublyLinkedListNode<T> insertBefore(
+				T value, node<T> cursor, SpinWait spin = new SpinWait())
+			{
+				if (cursor == List_.HeadNode)
+					return InsertAfter(value);
+				node<T> node = new node<T>(List_);
 
-                Thread.MemoryBarrier();
-                List_.enterTestSynchronizedBlock();
-                node prev = cursor.Prev_.P;
+				Thread.MemoryBarrier();
+				List_.EnterTestSynchronizedBlock();
+				node<T> prev = cursor.Prev_.P;
 #if SynchronizedLfdll_Verbose
-                Console.WriteLine("insertBefore Step 0");
-                Console.WriteLine("prev =");
-                List_.LogNode(prev);
+				Console.WriteLine("insertBefore Step 0");
+				Console.WriteLine("prev =");
+				List_.LogNode(prev);
 #endif
-                List_.leaveTestSynchronizedBlock();
+				List_.LeaveTestSynchronizedBlock();
 
-                node next;
-                while (true)
-                {
-                    while (true)
-                    {
+				node<T> next;
+				while (true)
+				{
+					while (true)
+					{
 
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        bool b = !cursor.Next_.Link.D;
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						bool b = !cursor.Next_.Link.D;
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("insertBefore Step 1");
-                        Console.WriteLine("b = {0}", b);
+						Console.WriteLine("insertBefore Step 1");
+						Console.WriteLine("b = {0}", b);
 #endif
-                        List_.leaveTestSynchronizedBlock();
+						List_.LeaveTestSynchronizedBlock();
 
-                        if (b)
-                            break;
+						if (b)
+							break;
 
-                        /* Since cursor was deleted
+						/* Since cursor was deleted
                          * the method correctPrev has not returned a node 
                          * which is logically before cursor;
                          * the return value shall not have semantic meaning.
@@ -1400,208 +1298,187 @@ namespace LockFreeDoublyLinkedList
                          * This is dire for program execution
                          * especially when prev == List_.tailNode. */
 
-                        toNext(ref cursor);
+						toNext(ref cursor);
 
-                        #region Bugfix 1
-                        /* Ascertain a new predecessor of cursor. */
-                        Thread.MemoryBarrier();
-                        List_.enterTestSynchronizedBlock();
-                        prev = cursor.Prev_.P;
+						#region Bugfix 1
+						/* Ascertain a new predecessor of cursor. */
+						Thread.MemoryBarrier();
+						List_.EnterTestSynchronizedBlock();
+						prev = cursor.Prev_.P;
 #if SynchronizedLfdll_Verbose
-                        Console.WriteLine("insertBefore Step 1.1");
-                        Console.WriteLine("prev =");
-                        List_.LogNode(prev);
+						Console.WriteLine("insertBefore Step 1.1");
+						Console.WriteLine("prev =");
+						List_.LogNode(prev);
 #endif
-                        List_.leaveTestSynchronizedBlock();
-                        #endregion
+						List_.LeaveTestSynchronizedBlock();
+						#endregion
 
-                        prev = List_.correctPrev(prev, cursor);
-                    }
-                    next = cursor;
-                    node.Prev_ = new nodeLink(prev, false);
-                    node.Next_ = new valueNodeLinkPair(value,
-                        new nodeLink(next, false));
+						prev = List_.CorrectPrev(prev, cursor);
+					}
+					next = cursor;
+					node.Prev_ = new nodeLink<T>(prev, false);
+					node.Next_ = new valueNodeLinkPair<T>(value,
+						new nodeLink<T>(next, false));
 
-                    List_.enterTestSynchronizedBlock();
-                    bool b1 = compareExchangeNodeLinkInPair(ref prev.Next_,
-                        new nodeLink(node, false),
-                        new nodeLink(cursor, false));
+					List_.EnterTestSynchronizedBlock();
+					bool b1 = compareExchangeNodeLinkInPair(ref prev.Next_,
+						new nodeLink<T>(node, false),
+						new nodeLink<T>(cursor, false));
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("insertBefore Step 2");
-                    Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
-                        List_.nodeLinkDescription(new nodeLink(node, false)),
-                        List_.nodeLinkDescription(new nodeLink(cursor, false)),
-                        b1);
-                    Console.WriteLine("prev =");
-                    List_.LogNode(prev);
-                    List_.LogState();
+					Console.WriteLine("insertBefore Step 2");
+					Console.WriteLine("compareExchangeNlIp(ref prev.Next_, {0}, {1}) = {2}",
+						List_.NodeLinkDescription(new nodeLink<T>(node, false)),
+						List_.NodeLinkDescription(new nodeLink<T>(cursor, false)),
+						b1);
+					Console.WriteLine("prev =");
+					List_.LogNode(prev);
+					List_.LogState();
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (b1)
-                        break;
+					if (b1)
+						break;
 
-                    prev = List_.correctPrev(prev, cursor);
-                    spin.SpinOnce();
-                }
+					prev = List_.CorrectPrev(prev, cursor);
+					spin.SpinOnce();
+				}
 
-                List_.correctPrev(prev, next);
-                return node;
-            }
+				List_.CorrectPrev(prev, next);
+				return node;
+			}
 
-            private INode insertAfter(T value, node cursor)
-            {
-                SpinWait spin = new SpinWait();
+			private ILockFreeDoublyLinkedListNode<T> insertAfter(T value, node<T> cursor)
+			{
+				SpinWait spin = new SpinWait();
 
-                if (cursor == List_.tailNode)
-                    return insertBefore(value, cursor, spin);
-                node node = new node(List_);
-                node prev = cursor;
-                node next;
-                while (true)
-                {
+				if (cursor == List_.TailNode)
+					return insertBefore(value, cursor, spin);
+				node<T> node = new node<T>(List_);
+				node<T> prev = cursor;
+				node<T> next;
+				while (true)
+				{
 
-                    Thread.MemoryBarrier();
-                    List_.enterTestSynchronizedBlock();
-                    next = prev.Next_.Link.P;
+					Thread.MemoryBarrier();
+					List_.EnterTestSynchronizedBlock();
+					next = prev.Next_.Link.P;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("insertAfter Step 0");
-                    Console.WriteLine("next =");
-                    List_.LogNode(next);
+					Console.WriteLine("insertAfter Step 0");
+					Console.WriteLine("next =");
+					List_.LogNode(next);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    node.Prev_ = new nodeLink(prev, false);
-                    node.Next_ = new valueNodeLinkPair(value,
-                        new nodeLink(next, false));
+					node.Prev_ = new nodeLink<T>(prev, false);
+					node.Next_ = new valueNodeLinkPair<T>(value,
+						new nodeLink<T>(next, false));
 
-                    List_.enterTestSynchronizedBlock();
-                    bool b1 = compareExchangeNodeLinkInPair(ref cursor.Next_,
-                        new nodeLink(node, false),
-                        new nodeLink(next, false));
+					List_.EnterTestSynchronizedBlock();
+					bool b1 = compareExchangeNodeLinkInPair(ref cursor.Next_,
+						new nodeLink<T>(node, false),
+						new nodeLink<T>(next, false));
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("insertAfter Step 1");
-                    Console.WriteLine("compareExchangeNlIp(ref cursor.Next_, {0}, {1}) = {2}",
-                        List_.nodeLinkDescription(new nodeLink(node, false)),
-                        List_.nodeLinkDescription(new nodeLink(next, false)),
-                        b1);
-                    Console.WriteLine("cursor =");
-                    List_.LogNode(cursor);
-                    List_.LogState();
+					Console.WriteLine("insertAfter Step 1");
+					Console.WriteLine("compareExchangeNlIp(ref cursor.Next_, {0}, {1}) = {2}",
+						List_.NodeLinkDescription(new nodeLink<T>(node, false)),
+						List_.NodeLinkDescription(new nodeLink<T>(next, false)),
+						b1);
+					Console.WriteLine("cursor =");
+					List_.LogNode(cursor);
+					List_.LogState();
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (b1)
-                        break;
+					if (b1)
+						break;
 
-                    /* Not necessary because of preceding compareExchange. */
-                    // Thread.MemoryBarrier();
+					/* Not necessary because of preceding compareExchange. */
+					// Thread.MemoryBarrier();
 
-                    List_.enterTestSynchronizedBlock();
-                    bool b = prev.Next_.Link.D;
+					List_.EnterTestSynchronizedBlock();
+					bool b = prev.Next_.Link.D;
 #if SynchronizedLfdll_Verbose
-                    Console.WriteLine("insertAfter Step 2");
-                    Console.WriteLine("b = {0}", b);
-                    List_.LogNode(next);
+					Console.WriteLine("insertAfter Step 2");
+					Console.WriteLine("b = {0}", b);
+					List_.LogNode(next);
 #endif
-                    List_.leaveTestSynchronizedBlock();
+					List_.LeaveTestSynchronizedBlock();
 
-                    if (b)
-                        return insertBefore(value, cursor, spin);
-                    spin.SpinOnce();
-                }
-                List_.correctPrev(prev, next);
-                return node;
-            }
+					if (b)
+						return insertBefore(value, cursor, spin);
+					spin.SpinOnce();
+				}
+				List_.CorrectPrev(prev, next);
+				return node;
+			}
+			#endregion
+		}
 
-            public T CompareExchangeValue(T newValue, T comparand)
-            {
-                valueNodeLinkPair currentPair;
-                Thread.MemoryBarrier();
-                while (true)
-                {
-                    currentPair = Next_;
-                    if (!ReferenceEquals(currentPair.Value, comparand))
-                        return currentPair.Value;
-                    if (ReferenceEquals(
-                            Interlocked.CompareExchange(
-                                ref Next_,
-                                new valueNodeLinkPair(
-                                    newValue, currentPair.Link),
-                                currentPair),
-                            currentPair))
-                    {
-                        break;
-                    }
-                }
-                return currentPair.Value;
-            }
-        }
+		private class nodeLink<T> where T : class
+		{
+			public node<T> P { get; }
+			public bool D { get; }
 
-        private class nodeLink
-        {
-            public node P { get; private set; }
-            public bool D { get; private set; }
+			public override bool Equals(object obj)
+			{
+				if (!(obj is nodeLink<T>))
+					return false;
 
-            public nodeLink(node p, bool d)
-            {
-                P = p;
-                D = d;
-            }
+				var other = (nodeLink<T>)obj;
+				return D == other.D && P == other.P;
+			}
 
-            public override bool Equals(object obj)
-            {
-                if (!(obj is nodeLink))
-                    return false;
+			public bool Equals(nodeLink<T> other)
+			{
+				if (other == null)
+					return false;
 
-                var other = (nodeLink)obj;
-                return this.D == other.D && this.P == other.P;
-            }
+				return D == other.D && P == other.P;
+			}
 
-            public bool Equals(nodeLink other)
-            {
-                if (other == null)
-                    return false;
+			public override int GetHashCode()
+			{
+				int hash = 17;
+				hash = hash * 486187739 + P.GetHashCode();
+				hash = hash * 486187739 + D.GetHashCode();
+				return hash;
+			}
 
-                return this.D == other.D && this.P == other.P;
-            }
+			public static explicit operator nodeLink<T>(node<T> node)
+			{
+				return new nodeLink<T>(node, false);
+			}
 
-            public override int GetHashCode()
-            {
-                int hash = 17;
-                hash = hash * 486187739 + P.GetHashCode();
-                hash = hash * 486187739 + D.GetHashCode();
-                return hash;
-            }
-
-            public static explicit operator nodeLink(node node)
-            {
-                return new nodeLink(node, false);
-            }
-
-            public static explicit operator node(nodeLink link)
-            {
+			public static explicit operator node<T>(nodeLink<T> link)
+			{
 #if DEBUG
-                /* I am not sure,
+				/* I am not sure,
                  * whether it is simply assumed in the document
                  * that the conversion is always possible. */
-                if (link.D)
-                    throw new ArgumentException();
+				if (link.D)
+					throw new ArgumentException();
 #endif
-                return link.P;
-            }
-        }
+				return link.P;
+			}
 
-        private class valueNodeLinkPair
-        {
-            public T Value { get; private set; }
-            public nodeLink Link { get; private set; }
+			public nodeLink(node<T> p, bool d)
+			{
+				P = p;
+				D = d;
+			}
+		}
 
-            public valueNodeLinkPair(T value, nodeLink link)
-            {
-                Value = value;
-                Link = link;
-            }
-        }
-    }
+		private class valueNodeLinkPair<T> where T : class
+		{
+			public T Value { get; }
+			public nodeLink<T> Link { get; }
+
+			public valueNodeLinkPair(T value, nodeLink<T> link)
+			{
+				Value = value;
+				Link = link;
+			}
+		}
+		#endregion
+	}
 }
