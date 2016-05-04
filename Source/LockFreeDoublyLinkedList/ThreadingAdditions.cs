@@ -20,7 +20,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
 	internal static class ThreadingAdditions
     {

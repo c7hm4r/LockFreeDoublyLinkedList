@@ -35,7 +35,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LockFreeDoublyLinkedList;
+using LockFreeDoublyLinkedLists;
 using Test.Tests.Test001_;
 using Test.Tests.Test001_.OperationResultComparers;
 using Test.Tests.Test001_.Operations;
@@ -392,7 +392,7 @@ namespace Test.Tests
             runOnLfdll(TestIterationParameters parameters)
         {
             ILockFreeDoublyLinkedList<ListItemData> lfdll
-                = LockFreeDoublyLinkedList.LockFreeDoublyLinkedList.
+                = LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.
 					Create<ListItemData>();
 
             Random initializationRandom

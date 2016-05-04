@@ -26,7 +26,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
 	/// <summary>
 	/// Provides an implementation of a LockFree DoublyLinkedList.

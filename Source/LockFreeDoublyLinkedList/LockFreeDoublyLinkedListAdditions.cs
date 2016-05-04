@@ -19,13 +19,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
 	/// <summary>
 	/// Extension methods for the class
 	/// <see cref="ILockFreeDoublyLinkedList{T}"/>
 	/// </summary>
-	public static class LockFreeDoublyLinkedListExtensions
+	public static class LockFreeDoublyLinkedListAdditions
 	{
 		/// <summary>
 		/// Exchanges the value of a LockFreeLinkedList node

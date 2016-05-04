@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LockFreeDoublyLinkedList;
+using LockFreeDoublyLinkedLists;
 using Test.Tests.Test001_.Operations;
 
 namespace Test.Tests.Test001_.OperationResultComparers

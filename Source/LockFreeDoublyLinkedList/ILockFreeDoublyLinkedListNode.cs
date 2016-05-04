@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
 	/// <summary>
 	/// A node of a LockFreeDoublyLinkedList instance.

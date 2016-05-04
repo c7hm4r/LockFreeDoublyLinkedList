@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
 	/// <summary>
 	/// A lock free doubly linked list for high concurrency.

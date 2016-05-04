@@ -51,4 +51,4 @@ using System.Threading.Tasks;
 // Sie können alle Werte angeben oder die standardmäßigen Build- und Revisionsnummern 
 // übernehmen, indem Sie "*" eingeben:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyVersion("3.0.0.0")]
