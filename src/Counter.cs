@@ -20,13 +20,10 @@ using System.Linq;
 using System.Threading.Tasks;
 
 #if SynchronizedLfdll
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace LockFreeDoublyLinkedList
+namespace LockFreeDoublyLinkedLists
 {
     /// <summary>
     /// A threadsafe Counter.
@@ -38,7 +35,7 @@ namespace LockFreeDoublyLinkedList
         /// </summary>
         public long Current => Interlocked.Read(ref value);
 
-	    /// <summary>
+        /// <summary>
         /// Inkrement the counter value.
         /// </summary>
         /// <returns>The new counter value.</returns>
