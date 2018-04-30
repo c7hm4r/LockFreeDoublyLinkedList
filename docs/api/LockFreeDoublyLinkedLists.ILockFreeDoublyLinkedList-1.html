@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Interface ILockFreeDoublyLinkedList&lt;T&gt;
+   </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Interface ILockFreeDoublyLinkedList&lt;T&gt;
+   ">
+    <meta name="generator" content="docfx 2.35.2.0">
+    
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    
+    
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1">
+  
+  
+  <h1 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1" class="text-break">Interface ILockFreeDoublyLinkedList&lt;T&gt;
+  </h1>
+  <div class="markdown level0 summary"><p>A lock free doubly linked list for high concurrency.</p>
+</div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Collections.Generic.IEnumerable&lt;T&gt;.GetEnumerator()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="LockFreeDoublyLinkedLists.html">LockFreeDoublyLinkedLists</a></h6>
+  <h6><strong>Assembly</strong>: LockFreeDoublyLinkedList.dll</h6>
+  <h5 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface ILockFreeDoublyLinkedList&lt;T&gt; : IEnumerable&lt;T&gt;, IEnumerable where T : class</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td><p>The type of the values.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="properties">Properties
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Head.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601.Head%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L48">View Source</a>
+  </span>
+  <a id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Head_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head*"></a>
+  <h4 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Head" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head">Head</h4>
+  <div class="markdown level1 summary"><p>The dummy head node (leftmost).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILockFreeDoublyLinkedListNode&lt;T&gt; Head { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html">ILockFreeDoublyLinkedListNode</a>&lt;T&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Tail.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601.Tail%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L52">View Source</a>
+  </span>
+  <a id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Tail_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail*"></a>
+  <h4 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Tail" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail">Tail</h4>
+  <div class="markdown level1 summary"><p>The dummy tail node (rightmost).</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILockFreeDoublyLinkedListNode&lt;T&gt; Tail { get; }</code></pre>
+  </div>
+  <h5 class="propertyValue">Property Value</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html">ILockFreeDoublyLinkedListNode</a>&lt;T&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PopRightNode.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601.PopRightNode%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L60">View Source</a>
+  </span>
+  <a id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PopRightNode_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode*"></a>
+  <h4 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PopRightNode" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode">PopRightNode()</h4>
+  <div class="markdown level1 summary"><p>Removes the rightmost non-dummy node, if it exists.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILockFreeDoublyLinkedListNode&lt;T&gt; PopRightNode()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html">ILockFreeDoublyLinkedListNode</a>&lt;T&gt;</td>
+        <td><p>null, if the list is empty; else the removed node.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushLeft__0_.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601.PushLeft(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L67">View Source</a>
+  </span>
+  <a id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushLeft_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft*"></a>
+  <h4 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushLeft__0_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft(`0)">PushLeft(T)</h4>
+  <div class="markdown level1 summary"><p>Inserts a new node at the head position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILockFreeDoublyLinkedListNode&lt;T&gt; PushLeft(T value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The initial value of the new node.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html">ILockFreeDoublyLinkedListNode</a>&lt;T&gt;</td>
+        <td><p>The new inserted node.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushRight__0_.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601.PushRight(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L74">View Source</a>
+  </span>
+  <a id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushRight_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight*"></a>
+  <h4 id="LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushRight__0_" data-uid="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight(`0)">PushRight(T)</h4>
+  <div class="markdown level1 summary"><p>Inserts a new node at the tail position.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ILockFreeDoublyLinkedListNode&lt;T&gt; PushRight(T value)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">value</span></td>
+        <td><p>The initial value of the new node.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html">ILockFreeDoublyLinkedListNode</a>&lt;T&gt;</td>
+        <td><p>The new inserted node.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/new/master/apiSpec/new?filename=LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1.md&amp;value=---%0Auid%3A%20LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/c7hm4r/LockFreeDoublyLinkedList/blob/master/src/ILockFreeDoublyLinkedList.cs/#L34" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+              <!-- <p><a class="back-to-top" href="#top">Back to top</a><p> -->
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            
+            <span>Generated by <strong>DocFX</strong></span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

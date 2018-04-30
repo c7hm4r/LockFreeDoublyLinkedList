@@ -1,0 +1,353 @@
+### YamlMime:XRefMap
+sorted: true
+references:
+- uid: LockFreeDoublyLinkedLists
+  name: LockFreeDoublyLinkedLists
+  href: api/LockFreeDoublyLinkedLists.html
+  commentId: N:LockFreeDoublyLinkedLists
+  fullName: LockFreeDoublyLinkedLists
+  nameWithType: LockFreeDoublyLinkedLists
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1
+  name: ILockFreeDoublyLinkedList<T>
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html
+  commentId: T:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1
+  name.vb: ILockFreeDoublyLinkedList(Of T)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T)
+  nameWithType: ILockFreeDoublyLinkedList<T>
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head
+  name: Head
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Head
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.Head
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).Head
+  nameWithType: ILockFreeDoublyLinkedList<T>.Head
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).Head
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head*
+  name: Head
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Head_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Head
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.Head
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).Head
+  nameWithType: ILockFreeDoublyLinkedList<T>.Head
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).Head
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode
+  name: PopRightNode()
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PopRightNode
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PopRightNode()
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PopRightNode()
+  nameWithType: ILockFreeDoublyLinkedList<T>.PopRightNode()
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PopRightNode()
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode*
+  name: PopRightNode
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PopRightNode_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PopRightNode
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PopRightNode
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PopRightNode
+  nameWithType: ILockFreeDoublyLinkedList<T>.PopRightNode
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PopRightNode
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft(`0)
+  name: PushLeft(T)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushLeft__0_
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft(`0)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PushLeft(T)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PushLeft(T)
+  nameWithType: ILockFreeDoublyLinkedList<T>.PushLeft(T)
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PushLeft(T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft*
+  name: PushLeft
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushLeft_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushLeft
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PushLeft
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PushLeft
+  nameWithType: ILockFreeDoublyLinkedList<T>.PushLeft
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PushLeft
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight(`0)
+  name: PushRight(T)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushRight__0_
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight(`0)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PushRight(T)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PushRight(T)
+  nameWithType: ILockFreeDoublyLinkedList<T>.PushRight(T)
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PushRight(T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight*
+  name: PushRight
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_PushRight_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.PushRight
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.PushRight
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).PushRight
+  nameWithType: ILockFreeDoublyLinkedList<T>.PushRight
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).PushRight
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail
+  name: Tail
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Tail
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.Tail
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).Tail
+  nameWithType: ILockFreeDoublyLinkedList<T>.Tail
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).Tail
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail*
+  name: Tail
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedList_1_Tail_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList`1.Tail
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList<T>.Tail
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedList(Of T).Tail
+  nameWithType: ILockFreeDoublyLinkedList<T>.Tail
+  nameWithType.vb: ILockFreeDoublyLinkedList(Of T).Tail
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1
+  name: ILockFreeDoublyLinkedListNode<T>
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html
+  commentId: T:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1
+  name.vb: ILockFreeDoublyLinkedListNode(Of T)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T)
+  nameWithType: ILockFreeDoublyLinkedListNode<T>
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.CompareExchangeValue(`0,`0)
+  name: CompareExchangeValue(T, T)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_CompareExchangeValue__0__0_
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.CompareExchangeValue(`0,`0)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.CompareExchangeValue(T, T)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).CompareExchangeValue(T, T)
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.CompareExchangeValue(T, T)
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).CompareExchangeValue(T, T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.CompareExchangeValue*
+  name: CompareExchangeValue
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_CompareExchangeValue_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.CompareExchangeValue
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.CompareExchangeValue
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).CompareExchangeValue
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.CompareExchangeValue
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).CompareExchangeValue
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfter(`0)
+  name: InsertAfter(T)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertAfter__0_
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfter(`0)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertAfter(T)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertAfter(T)
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertAfter(T)
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertAfter(T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfter*
+  name: InsertAfter
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertAfter_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfter
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertAfter
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertAfter
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertAfter
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertAfter
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfterIf(`0,System.Func{`0,System.Boolean})
+  name: InsertAfterIf(T, Func<T, Boolean>)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertAfterIf__0_System_Func__0_System_Boolean__
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfterIf(`0,System.Func{`0,System.Boolean})
+  name.vb: InsertAfterIf(T, Func(Of T, Boolean))
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertAfterIf(T, System.Func<T, System.Boolean>)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertAfterIf(T, System.Func(Of T, System.Boolean))
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertAfterIf(T, Func<T, Boolean>)
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertAfterIf(T, Func(Of T, Boolean))
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfterIf*
+  name: InsertAfterIf
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertAfterIf_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertAfterIf
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertAfterIf
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertAfterIf
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertAfterIf
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertAfterIf
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertBefore(`0)
+  name: InsertBefore(T)
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertBefore__0_
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertBefore(`0)
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertBefore(T)
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertBefore(T)
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertBefore(T)
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertBefore(T)
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertBefore*
+  name: InsertBefore
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_InsertBefore_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.InsertBefore
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.InsertBefore
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).InsertBefore
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.InsertBefore
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).InsertBefore
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.IsDummyNode
+  name: IsDummyNode
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_IsDummyNode
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.IsDummyNode
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.IsDummyNode
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).IsDummyNode
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.IsDummyNode
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).IsDummyNode
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.IsDummyNode*
+  name: IsDummyNode
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_IsDummyNode_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.IsDummyNode
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.IsDummyNode
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).IsDummyNode
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.IsDummyNode
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).IsDummyNode
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.List
+  name: List
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_List
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.List
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.List
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).List
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.List
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).List
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.List*
+  name: List
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_List_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.List
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.List
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).List
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.List
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).List
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Next
+  name: Next
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Next
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Next
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Next
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Next
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Next
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Next
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Next*
+  name: Next
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Next_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Next
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Next
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Next
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Next
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Next
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Prev
+  name: Prev
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Prev
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Prev
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Prev
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Prev
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Prev
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Prev
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Prev*
+  name: Prev
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Prev_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Prev
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Prev
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Prev
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Prev
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Prev
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Remove
+  name: Remove()
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Remove
+  commentId: M:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Remove
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Remove()
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Remove()
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Remove()
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Remove()
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Remove*
+  name: Remove
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Remove_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Remove
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Remove
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Remove
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Remove
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Remove
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Removed
+  name: Removed
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Removed
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Removed
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Removed
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Removed
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Removed
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Removed
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Removed*
+  name: Removed
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Removed_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Removed
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Removed
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Removed
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Removed
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Removed
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Value
+  name: Value
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Value
+  commentId: P:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Value
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Value
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Value
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Value
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Value
+- uid: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Value*
+  name: Value
+  href: api/LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode-1.html#LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode_1_Value_
+  commentId: Overload:LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode`1.Value
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>.Value
+  fullName.vb: LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T).Value
+  nameWithType: ILockFreeDoublyLinkedListNode<T>.Value
+  nameWithType.vb: ILockFreeDoublyLinkedListNode(Of T).Value
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList
+  name: LockFreeDoublyLinkedList
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.html
+  commentId: T:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList
+  nameWithType: LockFreeDoublyLinkedList
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create*
+  name: Create
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.html#LockFreeDoublyLinkedLists_LockFreeDoublyLinkedList_Create_
+  commentId: Overload:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create
+  nameWithType: LockFreeDoublyLinkedList.Create
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create``1
+  name: Create<T>()
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.html#LockFreeDoublyLinkedLists_LockFreeDoublyLinkedList_Create__1
+  commentId: M:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create``1
+  name.vb: Create(Of T)()
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create<T>()
+  fullName.vb: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create(Of T)()
+  nameWithType: LockFreeDoublyLinkedList.Create<T>()
+  nameWithType.vb: LockFreeDoublyLinkedList.Create(Of T)()
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create``1(System.Collections.Generic.IEnumerable{``0})
+  name: Create<T>(IEnumerable<T>)
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.html#LockFreeDoublyLinkedLists_LockFreeDoublyLinkedList_Create__1_System_Collections_Generic_IEnumerable___0__
+  commentId: M:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create``1(System.Collections.Generic.IEnumerable{``0})
+  name.vb: Create(Of T)(IEnumerable(Of T))
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create<T>(System.Collections.Generic.IEnumerable<T>)
+  fullName.vb: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedList.Create(Of T)(System.Collections.Generic.IEnumerable(Of T))
+  nameWithType: LockFreeDoublyLinkedList.Create<T>(IEnumerable<T>)
+  nameWithType.vb: LockFreeDoublyLinkedList.Create(Of T)(IEnumerable(Of T))
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions
+  name: LockFreeDoublyLinkedListAdditions
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.html
+  commentId: T:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions
+  nameWithType: LockFreeDoublyLinkedListAdditions
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf*
+  name: CompareExchangeValueIf
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.html#LockFreeDoublyLinkedLists_LockFreeDoublyLinkedListAdditions_CompareExchangeValueIf_
+  commentId: Overload:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf
+  isSpec: "True"
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf
+  nameWithType: LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf
+- uid: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf``1(LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode{``0},System.Func{``0,System.Tuple{``0}})
+  name: CompareExchangeValueIf<T>(ILockFreeDoublyLinkedListNode<T>, Func<T, Tuple<T>>)
+  href: api/LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.html#LockFreeDoublyLinkedLists_LockFreeDoublyLinkedListAdditions_CompareExchangeValueIf__1_LockFreeDoublyLinkedLists_ILockFreeDoublyLinkedListNode___0__System_Func___0_System_Tuple___0___
+  commentId: M:LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf``1(LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode{``0},System.Func{``0,System.Tuple{``0}})
+  name.vb: CompareExchangeValueIf(Of T)(ILockFreeDoublyLinkedListNode(Of T), Func(Of T, Tuple(Of T)))
+  fullName: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf<T>(LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode<T>, System.Func<T, System.Tuple<T>>)
+  fullName.vb: LockFreeDoublyLinkedLists.LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf(Of T)(LockFreeDoublyLinkedLists.ILockFreeDoublyLinkedListNode(Of T), System.Func(Of T, System.Tuple(Of T)))
+  nameWithType: LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf<T>(ILockFreeDoublyLinkedListNode<T>, Func<T, Tuple<T>>)
+  nameWithType.vb: LockFreeDoublyLinkedListAdditions.CompareExchangeValueIf(Of T)(ILockFreeDoublyLinkedListNode(Of T), Func(Of T, Tuple(Of T)))
