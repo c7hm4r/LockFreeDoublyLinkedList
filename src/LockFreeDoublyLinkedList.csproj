@@ -16,6 +16,7 @@
     <PackageLicenseUrl>https://www.apache.org/licenses/LICENSE-2.0.html
     </PackageLicenseUrl>
     <PackageTags>lock-free thread-safe linked list concurrency</PackageTags>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,4 +32,12 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\LockFreeDoublyLinkedList.xml</DocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Counter.cs" />
+    <Compile Include="ILockFreeDoublyLinkedList.cs" />
+    <Compile Include="ILockFreeDoublyLinkedListNode.cs" />
+    <Compile Include="LockFreeDoublyLinkedList.cs" />
+    <Compile Include="LockFreeDoublyLinkedListAdditions.cs" />
+    <Compile Include="ThreadingAdditions.cs" />
+  </ItemGroup>
 </Project>
