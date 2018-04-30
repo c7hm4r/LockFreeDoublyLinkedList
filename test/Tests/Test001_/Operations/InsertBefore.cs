@@ -24,33 +24,32 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class InsertBefore : NodeCreationOperation
     {
-	    public override LinkedListNode<LinkedListItem>
+        public override LinkedListNode<LinkedListItem>
             RunOnLinkedList(
             LinkedListExecutionState state)
         {
             LinkedListNode<LinkedListItem> current = state.Current;
-            if (current == null)
+            if (current == null || current == state.List.First)
                 return null;
-            LinkedListNode<LinkedListItem> prev = current;
-            while (prev.Previous != null &&
-                   prev.Previous.Value.Deleted)
+            LinkedListNode<LinkedListItem> successor = current;
+            while (successor.Previous.Value.Deleted)
             {
-                prev = prev.Previous;
+                successor = successor.Previous;
             }
-            return state.AddingToKnownNodes(state.List.AddBefore(prev, new LinkedListItem(Value)));
+            return state.AddingToKnownNodes(state.List.AddBefore(successor, new LinkedListItem(Value)));
         }
 
-	    public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
+        public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
             LfdllExecutionState state)
         {
             ILockFreeDoublyLinkedListNode<ListItemData> current
                 = state.Current;
-            if (current == null)
+            if (current == null || current == state.List.Head)
                 return null;
             return state.AddingToKnownNodes(current.InsertBefore(Value));
         }
 
-	    public InsertBefore(ObjectIdGenerator idGenerator, ListItemData value)
+        public InsertBefore(ObjectIdGenerator idGenerator, ListItemData value)
             : base(idGenerator, value)
         { }
     }

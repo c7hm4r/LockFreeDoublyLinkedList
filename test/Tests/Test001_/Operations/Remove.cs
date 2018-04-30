@@ -21,12 +21,14 @@ using System.Threading.Tasks;
 
 namespace Test.Tests.Test001_.Operations
 {
-	internal class Remove : BoolReturningOperation
+    internal class Remove : BoolReturningOperation
     {
-	    public override bool RunOnLinkedList(
+        public override bool RunOnLinkedList(
             LinkedListExecutionState state)
         {
             if (state.Current == null
+                || state.Current == state.List.First
+                || state.Current == state.List.Last
                 || state.Current.Value.Deleted)
             {
                 return false;
@@ -35,15 +37,17 @@ namespace Test.Tests.Test001_.Operations
             return true;
         }
 
-	    public override bool RunOnLfdll(
+        public override bool RunOnLfdll(
             LfdllExecutionState state)
         {
-            if (state.Current == null)
+            if (state.Current == null
+                    || state.Current == state.List.Head
+                    || state.Current == state.List.Tail)
                 return false;
             return state.Current.Remove();
         }
 
-	    public Remove(ObjectIdGenerator idGenerator)
+        public Remove(ObjectIdGenerator idGenerator)
             : base(idGenerator)
         {
         }

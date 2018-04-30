@@ -24,47 +24,41 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class Previous : VoidOperation
     {
-	    public override object RunOnLinkedList(
+        public override object RunOnLinkedList(
             LinkedListExecutionState state)
         {
             LinkedListNode<LinkedListItem> previous;
-            if (state.Current == null)
+            if (state.Current == null || state.Current == state.List.First)
             {
                 previous = state.List.First;
-                while (previous != null && previous.Value.Deleted)
-                    previous = previous.Next;
             }
             else
             {
                 previous = state.Current.Previous;
-                while (previous != null && previous.Value.Deleted)
+                while (previous.Value.Deleted)
                     previous = previous.Previous;
             }
             state.Current = previous;
             return null;
         }
 
-	    public override object RunOnLfdll(
+        public override object RunOnLfdll(
             LfdllExecutionState state)
         {
             ILockFreeDoublyLinkedListNode<ListItemData> current = state.Current;
-            if (current == null)
+            if (current == null || current == state.List.Head)
             {
-                current = state.List.Head.Next;
-                if (current == state.List.Tail)
-                    current = null;
+                current = state.List.Head;
             }
             else
             {
                 current = current.Prev;
-                if (current == state.List.Head)
-                    current = null;
             }
             state.Current = current;
             return null;
         }
 
-	    public Previous(ObjectIdGenerator idGenerator) : base(idGenerator)
+        public Previous(ObjectIdGenerator idGenerator) : base(idGenerator)
         {
         }
     }

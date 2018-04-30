@@ -24,9 +24,11 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class InsertAfterIf : NodeCreationOperation
     {
-	    public override LinkedListNode<LinkedListItem> RunOnLinkedList(LinkedListExecutionState state)
+        public override LinkedListNode<LinkedListItem> RunOnLinkedList(LinkedListExecutionState state)
         {
-            if (state.Current == null)
+            if (state.Current == null
+                    || state.Current == state.List.Last
+                    || state.Current == state.List.First)
                 return null;
             ListItemData oldData = state.Current.Value.Data;
             if (oldData.Value != prevalentValue
@@ -40,10 +42,12 @@ namespace Test.Tests.Test001_.Operations
                     state.List.AddAfter(state.Current, new LinkedListItem(Value)));
         }
 
-	    public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
-			LfdllExecutionState state)
+        public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
+            LfdllExecutionState state)
         {
-            if (state.Current == null)
+            if (state.Current == null
+                || state.Current == state.List.Head
+                || state.Current == state.List.Tail)
                 return null;
             return
                 state.AddingToKnownNodes(
@@ -51,12 +55,12 @@ namespace Test.Tests.Test001_.Operations
                         Value, data => data.Value == prevalentValue));
         }
 
-	    public override string ToString()
+        public override string ToString()
         {
             return base.ToString() + " if value == " + prevalentValue;
         }
 
-	    public InsertAfterIf(
+        public InsertAfterIf(
             ObjectIdGenerator idGenerator, ListItemData value,
             int prevalentValue)
             : base(idGenerator, value)
@@ -64,8 +68,8 @@ namespace Test.Tests.Test001_.Operations
             this.prevalentValue = prevalentValue;
         }
 
-	    #region private
-	    private readonly int prevalentValue;
-	    #endregion
+        #region private
+        private readonly int prevalentValue;
+        #endregion
     }
 }

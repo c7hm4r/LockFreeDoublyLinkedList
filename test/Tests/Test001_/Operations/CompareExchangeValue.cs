@@ -23,10 +23,10 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class CompareExchangeValue : ItemDataReturningOperation
     {
-	    public override ListItemData RunOnLinkedList(
+        public override ListItemData RunOnLinkedList(
             LinkedListExecutionState state)
         {
-            if (state.Current == null)
+            if (state.Current == null || state.Current.Value.IsDummy)
                 return null;
             ListItemData prevalentData = state.Current.Value.Data;
             if (prevalentData.Value != oldValue)
@@ -37,9 +37,9 @@ namespace Test.Tests.Test001_.Operations
             return prevalentData;
         }
 
-	    public override ListItemData RunOnLfdll(LfdllExecutionState state)
+        public override ListItemData RunOnLfdll(LfdllExecutionState state)
         {
-            if (state.Current == null)
+            if (state.Current == null || state.Current.IsDummyNode)
                 return null;
             ListItemData oldData = state.Current.Value;
             while (true)
@@ -54,21 +54,21 @@ namespace Test.Tests.Test001_.Operations
             }
         }
 
-	    public override string ToString()
+        public override string ToString()
         {
             return base.ToString() + " " + oldValue + " " + newValue;
         }
 
-	    public CompareExchangeValue(ObjectIdGenerator idGenerator, int oldValue, int newValue)
+        public CompareExchangeValue(ObjectIdGenerator idGenerator, int oldValue, int newValue)
             : base(idGenerator)
         {
             this.oldValue = oldValue;
             this.newValue = newValue;
         }
 
-	    #region private
-	    private readonly int oldValue;
-	    private readonly int newValue;
-	    #endregion
+        #region private
+        private readonly int oldValue;
+        private readonly int newValue;
+        #endregion
     }
 }

@@ -23,10 +23,12 @@ namespace Test.Tests.Test001_.Operations
 {
     internal class SetValue : VoidOperation
     {
-	    public override object RunOnLinkedList(LinkedListExecutionState state)
+        public override object RunOnLinkedList(LinkedListExecutionState state)
         {
             LinkedListNode<LinkedListItem> current = state.Current;
-            if (current != null)
+            if (current != null
+                    && current != state.List.First
+                    && current != state.List.Last)
             {
                 current.Value = current.Value.NewWithData(
                     current.Value.Data.NewWithValue(value));
@@ -34,9 +36,11 @@ namespace Test.Tests.Test001_.Operations
             return null;
         }
 
-	    public override object RunOnLfdll(LfdllExecutionState state)
+        public override object RunOnLfdll(LfdllExecutionState state)
         {
-            if (state.Current != null)
+            if (state.Current != null
+                    && state.Current != state.List.Head
+                    && state.Current != state.List.Tail)
             {
                 long nodeId = state.Current.Value.NodeId;
                 state.Current.Value = new ListItemData(nodeId, value);
@@ -44,14 +48,14 @@ namespace Test.Tests.Test001_.Operations
             return null;
         }
 
-	    public SetValue(ObjectIdGenerator idGenerator, int value)
+        public SetValue(ObjectIdGenerator idGenerator, int value)
             : base(idGenerator)
         {
             this.value = value;
         }
 
-	    #region private
-	    private readonly int value;
-	    #endregion
+        #region private
+        private readonly int value;
+        #endregion
     }
 }

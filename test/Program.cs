@@ -31,7 +31,7 @@ namespace Test
         {
             Random rand = new Random();
 
-            long remainingTests = 1;
+            long remainingTests = 20000;
             var logIntervalStopwatch = new Stopwatch();
             var testBatchStopwatch = new Stopwatch();
             long testBatchSize;
@@ -58,14 +58,23 @@ namespace Test
                     var test = new Test001();
                     test.Seed = rand.Next(int.MinValue, int.MaxValue);
                     //Console.WriteLine("seed: {0}", test.Seed);
-                    Thread.Yield();
-                    testRunsStopwatch.Start();
-                    Thread.MemoryBarrier();
 
-                    test.Main(args);
+                    try
+                    {
+                        Thread.Yield();
+                        testRunsStopwatch.Start();
+                        Thread.MemoryBarrier();
 
-                    Thread.MemoryBarrier();
-                    testRunsStopwatch.Stop();
+                        test.Main(args);
+
+                        Thread.MemoryBarrier();
+                        testRunsStopwatch.Stop();
+                    }
+                    catch
+                    {
+                        Console.WriteLine($"The test failed. The seed was: {test.Seed}.");
+                        throw;
+                    }
                 }
                 if (testBatchSize > 0)
                 {

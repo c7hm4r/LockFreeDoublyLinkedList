@@ -21,19 +21,23 @@ using System.Threading.Tasks;
 
 namespace Test.Tests.Test001_.Operations
 {
-	internal class GetValue : ItemDataReturningOperation
+    internal class GetValue : ItemDataReturningOperation
     {
-	    public override ListItemData RunOnLinkedList(LinkedListExecutionState state)
+        public override ListItemData RunOnLinkedList(LinkedListExecutionState state)
         {
-            return state.Current == null ? null : state.Current.Value.Data;
+            return state.Current == null || state.Current.Value.IsDummy ?
+                null :
+                state.Current.Value.Data;
         }
 
-	    public override ListItemData RunOnLfdll(LfdllExecutionState state)
+        public override ListItemData RunOnLfdll(LfdllExecutionState state)
         {
-            return state.Current == null ? null : state.Current.Value;
+            return state.Current == null || state.Current.IsDummyNode ?
+                null :
+                state.Current.Value;
         }
 
-	    public GetValue(ObjectIdGenerator idGenerator)
+        public GetValue(ObjectIdGenerator idGenerator)
             : base(idGenerator)
         {
         }

@@ -21,32 +21,42 @@ using System.Threading.Tasks;
 
 namespace Test.Tests.Test001_
 {
-	internal class LinkedListItem
+    internal class LinkedListItem
     {
-	    public bool Deleted { get; private set; }
-	    public ListItemData Data { get; private set; }
+        public bool IsDummy { get; private set; }
+        public bool Deleted { get; private set; }
+        public ListItemData Data { get; private set; }
 
-	    public void Delete()
+        public void Delete()
         {
+            if (IsDummy)
+            {
+                throw new InvalidOperationException();
+            }
             Deleted = true;
         }
 
-	    public LinkedListItem NewWithData(ListItemData data)
+        public LinkedListItem NewWithData(ListItemData data)
         {
+            if (IsDummy)
+            {
+                throw new InvalidOperationException();
+            }
             return new LinkedListItem(data)
             {
                 Deleted = Deleted,
             };
         }
 
-	    public override string ToString()
+        public override string ToString()
         {
             return "<" + Data + ">" + (Deleted ? "D" : "");
         }
 
-	    public LinkedListItem(ListItemData data)
+        public LinkedListItem(ListItemData data, bool isDummy = false)
         {
             Data = data;
+            IsDummy = isDummy;
         }
     }
 }

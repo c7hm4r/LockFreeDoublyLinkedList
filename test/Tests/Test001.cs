@@ -42,7 +42,7 @@ using Test.Tests.Test001_.Operations;
 
 namespace Test.Tests
 {
-    internal class Test001 : Test
+    internal partial class Test001 : Test
     {
         public override void Main(string[] args)
         {
@@ -56,15 +56,7 @@ namespace Test.Tests
             const int operationNumberPerSequence = 4;
             const int listSize = 4;
 
-            //Seed = -1182330010;
-            //Seed = 1136758711;
-
-            //Seed = 2037835186;
-            //Seed = -1713978986;
-            //Seed = -61631207;
-            //Seed = 2078889772;
-            //Seed = 234923264;
-            //Seed = -583307162;
+            //Seed = 669052551;
             Random rand2 = new Random(Seed);
 
             TestIterationParameters iterationParameters =
@@ -134,8 +126,7 @@ namespace Test.Tests
                                     .ToList()))
                     .Any(
                         llResult =>
-                            llResult.SequenceEqual(
-                                lfdllResultList, equalityComparer)
+                            llResult.SequenceEqual(lfdllResultList, equalityComparer)
                             && iterationParameters.OperationSequences.All(
                                 os => os.Operations.All(o => o.LastResultsEqual)));
             // ReSharper disable once RedundantLogicalConditionalExpressionOperand
@@ -517,7 +508,10 @@ namespace Test.Tests
                                 new ListItemData(
                                     i,
                                     initializationRandom.Next(
-                                        listItemValueRange)))));
+                                        listItemValueRange)),
+                                isDummy: false)));
+            list.AddFirst(new LinkedListItem(null, true));
+            list.AddLast(new LinkedListItem(null, true));
 
             List<linkedListOperationExecutor> executors =
                 parameters.OperationSequences.Select(
@@ -529,10 +523,15 @@ namespace Test.Tests
 
             foreach (int executorIndex in executorStepOrder)
             {
-                executors[executorIndex].SingleStep();
+                executors[executorIndex].RunSingleOperation();
             }
 
-            return list.Where(value => !value.Deleted).Select(item => item.Data);
+            return list
+                .Skip(1)
+                .SkipLast(1)
+                .Where(value => !value.Deleted)
+                .Select(item => item.Data)
+                .ToList();
         }
 
         private TestIterationParameters newIterationParameters(int listSize, int operationSequencesNumber, int operationNumberPerSequence, Random rand)
@@ -546,7 +545,7 @@ namespace Test.Tests
                         operationSequencesNumber,
                         () => new ExecutionSequenceParameters
                         {
-                            StartIndex = rand.Next(listSize),
+                            StartIndex = rand.Next(listSize + 2), // with head and tail node
                             Operations =
                                 LinqHelper.Repeat(
                                     operationNumberPerSequence,
@@ -575,142 +574,6 @@ namespace Test.Tests
             long end = counter.Count();
 
             return new Tuple<long, long>(start, end);
-        }
-
-        private class operationTiming
-        {
-            public readonly IOperationResultComparer Operation;
-            public readonly long Start, End;
-
-            public operationTiming(IOperationResultComparer operation,
-                Tuple<long, long> timing)
-            {
-                Operation = operation;
-                Start = timing.Item1;
-                End = timing.Item2;
-            }
-        }
-
-        private class lfdllOperationExecutor
-        {
-            public int Name { get; }
-
-            /* Should be executed before a
-             * LFDLLOperationExecutor modifies list. */
-
-            public void Initialize()
-            {
-                ILockFreeDoublyLinkedListNode<ListItemData> current =
-                    state.List.Head;
-                for (int i = 0; i < eParams.StartIndex + 1; i++)
-                    current = current.Next;
-                state.Current = current;
-            }
-
-            public List<operationTiming> Run()
-            {
-#if !RunOperationsSequentially
-                Thread.CurrentThread.Name = Name.ToString();
-#endif
-                return eParams.Operations
-                    .Select(operation =>
-                        new operationTiming(
-                            operation,
-                            processOperation(operation, counter)))
-                    .ToList();
-            }
-
-            public lfdllOperationExecutor(
-                ExecutionSequenceParameters eParams,
-                ILockFreeDoublyLinkedList<ListItemData> list, Counter counter,
-                int name)
-            {
-                this.eParams = eParams;
-                this.counter = counter;
-                Name = name;
-                state = new LfdllExecutionState(list);
-            }
-
-            #region private
-            private readonly ExecutionSequenceParameters eParams;
-            private readonly LfdllExecutionState state;
-            private readonly Counter counter;
-
-            private Tuple<long, long> processOperation(
-                IOperationResultComparer op, Counter ctr)
-            {
-#if SynchronizedLfdll_verbose
-                Console.WriteLine("({0}) Nächste Operation: {1}", Name, op);
-                Console.WriteLine("({0}) Aktueller Knoten:", Name);
-                state.List.LogNode(state.Current);
-#endif
-
-                Tuple<long, long> timing = measureTime(
-                    () =>
-                    {
-                        op.RunOnLfdll(state);
-                    },
-                    ctr);
-
-#if SynchronizedLfdll_verbose
-                Console.WriteLine("({0}) Beendete Operation: {1}", Name, op);
-#endif
-
-                return timing;
-            }
-            #endregion
-        }
-
-        private class linkedListOperationExecutor
-        {
-            public void Initialize()
-            {
-                LinkedListNode<LinkedListItem> current = state.List.First;
-                for (int i = 0; i < eParams.StartIndex; i++)
-                {
-                    // ReSharper disable once PossibleNullReferenceException
-                    current = current.Next;
-                }
-                state.Current = current;
-            }
-
-            public void SingleStep()
-            {
-                IOperationResultComparer operation
-                    = eParams.Operations[nextOperation];
-                operation.RunOnLinkedList(state);
-                nextOperation++;
-            }
-
-            public linkedListOperationExecutor(
-                ExecutionSequenceParameters eParams,
-                LinkedList<LinkedListItem> list)
-            {
-                state = new LinkedListExecutionState(list);
-                this.eParams = eParams;
-            }
-
-            #region private
-            private readonly ExecutionSequenceParameters eParams;
-            private readonly LinkedListExecutionState state;
-            private int nextOperation = 0;
-            #endregion
-        }
-
-        private class operationExecutionInfo
-        {
-            public readonly int ExecutorIndex;
-            public readonly IOperationResultComparer Operation;
-            public readonly long Start, End;
-
-            public operationExecutionInfo(
-                operationTiming operationTiming, int executorIndex)
-            {
-                ExecutorIndex = executorIndex;
-                Operation = operationTiming.Operation;
-                Start = operationTiming.Start;
-                End = operationTiming.End;
-            }
         }
     }
 }

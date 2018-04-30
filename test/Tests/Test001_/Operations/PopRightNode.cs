@@ -22,22 +22,25 @@ using LockFreeDoublyLinkedLists;
 
 namespace Test.Tests.Test001_.Operations
 {
-	internal class PopRightNode : NodeReturningOperation
+    internal class PopRightNode : NodeReturningOperation
     {
-	    // ReSharper disable once RedundantAssignment
-	    public override LinkedListNode<LinkedListItem> RunOnLinkedList(
+        // ReSharper disable once RedundantAssignment
+        public override LinkedListNode<LinkedListItem> RunOnLinkedList(
             LinkedListExecutionState state)
         {
             LinkedListNode<LinkedListItem> last = state.List.Last;
-            while (last != null && last.Value.Deleted)
+            do
+            {
                 last = last.Previous;
-            if (last == null)
+            }
+            while (last != state.List.First && last.Value.Deleted);
+            if (last == state.List.First)
                 return null;
             last.Value.Delete();
             return state.AddingToKnownNodes(last);
         }
 
-	    public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
+        public override ILockFreeDoublyLinkedListNode<ListItemData> RunOnLfdll(
             LfdllExecutionState state)
         {
             ILockFreeDoublyLinkedListNode<ListItemData> node
@@ -47,7 +50,7 @@ namespace Test.Tests.Test001_.Operations
             return node;
         }
 
-	    public PopRightNode(ObjectIdGenerator idGenerator)
+        public PopRightNode(ObjectIdGenerator idGenerator)
             : base(idGenerator)
         {
         }

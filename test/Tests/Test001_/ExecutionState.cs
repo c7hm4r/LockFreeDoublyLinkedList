@@ -22,41 +22,19 @@ using LockFreeDoublyLinkedLists;
 
 namespace Test.Tests.Test001_
 {
-	internal class LinkedListExecutionState
-        : ExecutionState<LinkedList<LinkedListItem>,
-            LinkedListNode<LinkedListItem>> 
+    internal abstract class ExecutionState<ListT, NodeT> : IExecutionState<NodeT>
     {
-	    public LinkedListExecutionState(
-            LinkedList<LinkedListItem> list)
-            : base(list)
-        {
-        }
-    }
+        public ListT List { get; private set; }
+        public List<NodeT> KnownNodes { get; private set; }
 
-	internal class LfdllExecutionState
-        : ExecutionState<ILockFreeDoublyLinkedList<ListItemData>,
-            ILockFreeDoublyLinkedListNode<ListItemData>> 
-    {
-	    public LfdllExecutionState(
-            ILockFreeDoublyLinkedList<ListItemData> list)
-            : base(list)
-        {
-        }
-    }
-
-	internal abstract class ExecutionState<ListT, NodeT> : IExecutionState<NodeT>
-    {
-	    public ListT List { get; private set; }
-	    public List<NodeT> KnownNodes { get; private set; }
-
-	    public ICollection<NodeT> KnownNodesCollection
+        public ICollection<NodeT> KnownNodesCollection
         {
             get { return KnownNodes; }
         }
 
-	    public int CurrentIndex { get; set; }
+        public int CurrentIndex { get; set; }
 
-	    /// <summary>
+        /// <summary>
         /// Adds a node to the list of known nodes.
         /// </summary>
         /// <param name="node">The node to add.</param>
@@ -75,7 +53,7 @@ namespace Test.Tests.Test001_
             return i;
         }
 
-	    /// <summary>
+        /// <summary>
         /// Adds a node to the list of known nodes
         /// and returns the same node.
         /// </summary>
@@ -87,22 +65,22 @@ namespace Test.Tests.Test001_
             return node;
         }
 
-	    public NodeT Current
+        public NodeT Current
         {
             get { return KnownNodes[CurrentIndex]; }
             set { CurrentIndex = AddToKnownNodes(value); }
         }
 
-	    public ExecutionState(ListT list)
+        public ExecutionState(ListT list)
         {
             List = list;
             KnownNodes = new List<NodeT>();
         }
     }
 
-	internal interface IExecutionState<NodeT>
+    internal interface IExecutionState<NodeT>
     {
-	    ICollection<NodeT> KnownNodesCollection { get; }
-	    int CurrentIndex { get; set; }
+        ICollection<NodeT> KnownNodesCollection { get; }
+        int CurrentIndex { get; set; }
     }
 }
