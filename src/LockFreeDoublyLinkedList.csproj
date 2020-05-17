@@ -6,14 +6,15 @@
     <Product>Lock free doubly linked list</Product>
     <PackageId>LockFreeDoublyLinkedList</PackageId>
     <Description>A lock free doubly linked list for high concurrency.</Description>
-    <Version>4.0.0.0</Version>
+    <Version>4.0.0.1</Version>
     <Authors>Christoph Müller (iblzm@hotmail.de)</Authors>
     <Company>Christoph Müller (iblzm@hotmail.de)</Company>
     <Copyright>Copyright © Christoph Müller 2018–2020</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
     <IncludeSymbols>true</IncludeSymbols>
     <PackageProjectUrl>https://github.com/c7hm4r/LockFreeDoublyLinkedList</PackageProjectUrl>
-    <PackageLicenseUrl>https://www.apache.org/licenses/LICENSE-2.0.html</PackageLicenseUrl>
+    <License>Apache-2.0</License>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageTags>lock-free thread-safe linked list concurrency</PackageTags>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -24,6 +25,8 @@
     <DefineConstants>TRACE;DEBUG;</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants></DefineConstants>
@@ -38,5 +41,6 @@
     <Compile Include="LockFreeDoublyLinkedList.cs" />
     <Compile Include="LockFreeDoublyLinkedListAdditions.cs" />
     <Compile Include="ThreadingAdditions.cs" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath=""/>
   </ItemGroup>
 </Project>
